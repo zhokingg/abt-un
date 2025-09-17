@@ -39,7 +39,111 @@ const config = {
   PRIVATE_KEY: process.env.PRIVATE_KEY || '',
   
   // Development
-  NODE_ENV: process.env.NODE_ENV || 'development'
+  NODE_ENV: process.env.NODE_ENV || 'development',
+  
+  // Phase 4: Performance & Safety Configuration
+  PHASE4: {
+    // Network Optimization
+    RPC_ENDPOINTS: [
+      {
+        url: process.env.RPC_URL_PRIMARY || process.env.RPC_URL || 'https://mainnet.infura.io/v3/YOUR_INFURA_KEY',
+        region: 'primary',
+        priority: 1
+      },
+      {
+        url: process.env.RPC_URL_SECONDARY || '',
+        region: 'secondary',
+        priority: 2
+      },
+      {
+        url: process.env.RPC_URL_TERTIARY || '',
+        region: 'tertiary',
+        priority: 3
+      }
+    ].filter(endpoint => endpoint.url && !endpoint.url.includes('YOUR_INFURA_KEY')),
+    
+    // Performance Targets
+    PERFORMANCE_TARGETS: {
+      rpcLatency: parseInt(process.env.RPC_LATENCY_TARGET) || 100, // 100ms
+      executionTime: parseInt(process.env.EXECUTION_TIME_TARGET) || 30000, // 30s
+      memoryUsage: parseInt(process.env.MEMORY_USAGE_TARGET) || 512, // 512MB
+      cpuUsage: parseInt(process.env.CPU_USAGE_TARGET) || 70, // 70%
+      successRate: parseFloat(process.env.SUCCESS_RATE_TARGET) || 95 // 95%
+    },
+    
+    // Risk Management
+    RISK_LIMITS: {
+      maxDailyLoss: parseFloat(process.env.MAX_DAILY_LOSS) || 1000, // $1000
+      maxTradeAmount: parseFloat(process.env.MAX_TRADE_AMOUNT) || 1000, // $1000
+      maxPositionSize: parseFloat(process.env.MAX_POSITION_SIZE) || 0.1, // 10%
+      maxDrawdown: parseFloat(process.env.MAX_DRAWDOWN) || 0.2, // 20%
+      emergencyStopLoss: parseFloat(process.env.EMERGENCY_STOP_LOSS) || 0.05, // 5%
+      maxConsecutiveLosses: parseInt(process.env.MAX_CONSECUTIVE_LOSSES) || 5,
+      cooldownPeriod: parseInt(process.env.COOLDOWN_PERIOD) || 300000 // 5 minutes
+    },
+    
+    // Monitoring Configuration
+    MONITORING: {
+      logLevel: process.env.LOG_LEVEL || 'info',
+      enableFileLogging: process.env.ENABLE_FILE_LOGGING !== 'false',
+      enableMetrics: process.env.ENABLE_METRICS !== 'false',
+      metricsInterval: parseInt(process.env.METRICS_INTERVAL) || 30000, // 30s
+      healthCheckInterval: parseInt(process.env.HEALTH_CHECK_INTERVAL) || 60000, // 1 minute
+      logRetentionDays: parseInt(process.env.LOG_RETENTION_DAYS) || 30
+    },
+    
+    // Alerting Configuration
+    ALERTING: {
+      enableDiscord: process.env.ENABLE_DISCORD_ALERTS === 'true',
+      enableTelegram: process.env.ENABLE_TELEGRAM_ALERTS === 'true',
+      enableEmail: process.env.ENABLE_EMAIL_ALERTS === 'true',
+      enableSMS: process.env.ENABLE_SMS_ALERTS === 'true',
+      enableSlack: process.env.ENABLE_SLACK_ALERTS === 'true',
+      priorityThreshold: process.env.ALERT_PRIORITY_THRESHOLD || 'medium',
+      rateLimitWindow: parseInt(process.env.ALERT_RATE_LIMIT_WINDOW) || 300000, // 5 minutes
+      maxAlertsPerWindow: parseInt(process.env.MAX_ALERTS_PER_WINDOW) || 10,
+      cooldownPeriod: parseInt(process.env.ALERT_COOLDOWN_PERIOD) || 60000 // 1 minute
+    },
+    
+    // Backtesting Configuration
+    BACKTESTING: {
+      initialCapital: parseFloat(process.env.BACKTEST_INITIAL_CAPITAL) || 10000, // $10k
+      simulationSpeed: parseFloat(process.env.BACKTEST_SIMULATION_SPEED) || 1, // 1x
+      dataRetentionMonths: parseInt(process.env.BACKTEST_DATA_RETENTION) || 6, // 6 months
+      monteCarloRuns: parseInt(process.env.MONTE_CARLO_RUNS) || 1000
+    },
+    
+    // External Services
+    EXTERNAL_SERVICES: {
+      // Redis for caching and session management
+      redis: {
+        url: process.env.REDIS_URL || 'redis://localhost:6379',
+        maxRetries: parseInt(process.env.REDIS_MAX_RETRIES) || 3,
+        retryDelayOnFailover: parseInt(process.env.REDIS_RETRY_DELAY) || 100
+      },
+      
+      // Prometheus for metrics collection
+      prometheus: {
+        enabled: process.env.ENABLE_PROMETHEUS === 'true',
+        port: parseInt(process.env.PROMETHEUS_PORT) || 9090,
+        endpoint: process.env.PROMETHEUS_ENDPOINT || '/metrics'
+      },
+      
+      // Grafana for monitoring dashboards
+      grafana: {
+        enabled: process.env.ENABLE_GRAFANA === 'true',
+        url: process.env.GRAFANA_URL || 'http://localhost:3000',
+        apiKey: process.env.GRAFANA_API_KEY || ''
+      },
+      
+      // Bull Queue for job processing
+      bullQueue: {
+        enabled: process.env.ENABLE_BULL_QUEUE === 'true',
+        concurrency: parseInt(process.env.BULL_QUEUE_CONCURRENCY) || 5,
+        maxRetries: parseInt(process.env.BULL_QUEUE_MAX_RETRIES) || 3
+      }
+    }
+  }
 };
 
 // Validation
@@ -47,6 +151,15 @@ if (!config.RPC_URL.includes('YOUR_INFURA_KEY') && config.NODE_ENV === 'producti
   console.log('✅ RPC URL configured');
 } else if (config.NODE_ENV === 'production') {
   console.warn('⚠️  Warning: Using default RPC URL in production');
+}
+
+// Phase 4 validation
+if (config.PHASE4.RPC_ENDPOINTS.length === 0) {
+  console.warn('⚠️  Warning: No additional RPC endpoints configured for Phase 4');
+}
+
+if (config.NODE_ENV === 'production' && !config.PHASE4.EXTERNAL_SERVICES.redis.url.includes('localhost')) {
+  console.log('✅ Production Redis configuration detected');
 }
 
 module.exports = config;
