@@ -1,0 +1,20 @@
+{
+  "network": "simulated",
+  "timestamp": "2025-09-17T04:24:05.886Z",
+  "deployer": "0x1234567890123456789012345678901234567890",
+  "contracts": {
+    "AccessControl": "0x1111111111111111111111111111111111111111",
+    "EmergencyStop": "0x2222222222222222222222222222222222222222",
+    "ProfitCalculator": "0x3333333333333333333333333333333333333333",
+    "ArbitrageRouter": "0x4444444444444444444444444444444444444444",
+    "FlashloanArbitrage": "0x5555555555555555555555555555555555555555"
+  },
+  "transactionHashes": {
+    "AccessControl": "0xabc1...",
+    "EmergencyStop": "0xabc2...",
+    "ProfitCalculator": "0xabc3...",
+    "ArbitrageRouter": "0xabc4...",
+    "FlashloanArbitrage": "0xabc5..."
+  },
+  "simulated": true
+}
