@@ -1,76 +1,82 @@
 // src/index.js
 require('dotenv').config();
+const CoreArbitrageEngine = require('./services/coreArbitrageEngine');
 
 async function main() {
   try {
-    console.log('🚀 V2/V3 Arbitrage Bot Starting...');
+    console.log('🚀 V2/V3 Arbitrage Bot Starting (Phase 2)...');
+    console.log('⚡ Core Arbitrage Engine with Advanced MEV Detection');
     
-    // Check if we have the ArbitrageBot class available
-    try {
-      const ArbitrageBot = require('./ArbitrageBot');
-      
-      // Check environment variables
-      if (!process.env.ETHEREUM_RPC_URL) {
-        throw new Error('❌ ETHEREUM_RPC_URL not found in environment variables');
+    // Initialize the Core Arbitrage Engine
+    const engine = new CoreArbitrageEngine();
+    
+    // Set up event listeners for monitoring
+    engine.on('engineStarted', (data) => {
+      console.log('✅ Engine started successfully');
+      console.log(`📊 Monitoring ${data.monitoredPairs} token pairs`);
+    });
+    
+    engine.on('opportunityExecuted', (data) => {
+      console.log(`⚡ Opportunity executed: ${data.opportunityId}`);
+      console.log(`💰 Expected profit: $${data.expectedProfit.toFixed(2)}`);
+    });
+    
+    engine.on('mevOpportunity', (data) => {
+      console.log(`🎯 MEV opportunity detected: ${data.type}`);
+    });
+    
+    engine.on('engineError', (data) => {
+      console.error(`❌ Engine error: ${data.error}`);
+    });
+    
+    // Initialize and start the engine
+    await engine.initialize();
+    await engine.start();
+    
+    // Set up graceful shutdown handlers
+    const shutdown = async () => {
+      console.log('\n👋 Shutting down arbitrage bot...');
+      try {
+        await engine.stop();
+        process.exit(0);
+      } catch (error) {
+        console.error('❌ Error during shutdown:', error.message);
+        process.exit(1);
       }
-      
-      if (!process.env.PRIVATE_KEY) {
-        throw new Error('❌ PRIVATE_KEY not found in environment variables');
-      }
-      
-      console.log('✅ Environment variables loaded');
-      console.log('📡 RPC URL configured');
-      console.log('👛 Wallet configured');
-      
-      // Initialize and start the bot
-      const bot = new ArbitrageBot();
-      await bot.start();
-      
-    } catch (requireError) {
-      if (requireError.code === 'MODULE_NOT_FOUND' && requireError.message.includes('ArbitrageBot')) {
-        console.log('📝 ArbitrageBot class not found - creating basic demo mode...');
-        console.log('✅ Basic setup working!');
-        console.log('📁 Project structure created successfully');
-        console.log('');
-        console.log('💡 To enable full arbitrage functionality:');
-        console.log('1. Create the ArbitrageBot.js file in src/');
-        console.log('2. Set up your .env file with Alchemy API key');
-        console.log('3. Restart the bot');
-        
-        // Keep the process running
-        console.log('🔄 Watching for file changes...');
-        setInterval(() => {
-          // Keep alive
-        }, 10000);
-      } else {
-        throw requireError;
-      }
-    }
+    };
+    
+    process.on('SIGINT', shutdown);
+    process.on('SIGTERM', shutdown);
+    
+    // Keep the process running
+    process.on('uncaughtException', (error) => {
+      console.error('❌ Uncaught exception:', error.message);
+      shutdown();
+    });
+    
+    process.on('unhandledRejection', (reason, promise) => {
+      console.error('❌ Unhandled rejection at:', promise, 'reason:', reason);
+      shutdown();
+    });
     
   } catch (error) {
     console.error('❌ Bot startup failed:', error.message);
     
-    if (error.message.includes('ETHEREUM_RPC_URL')) {
-      console.log('💡 Create a .env file with your Alchemy API key');
+    if (error.message.includes('RPC URL')) {
+      console.log('💡 Set RPC_URL in your .env file with your Infura/Alchemy key');
     }
-    if (error.message.includes('PRIVATE_KEY')) {
-      console.log('💡 Add a PRIVATE_KEY to your .env file');
+    if (error.message.includes('Private key')) {
+      console.log('💡 Add PRIVATE_KEY to your .env file (or set DRY_RUN=true for testing)');
     }
+    
+    console.log('\n📋 Required environment variables:');
+    console.log('- RPC_URL: Your Ethereum RPC endpoint');
+    console.log('- PRIVATE_KEY: Your wallet private key (optional if DRY_RUN=true)');
+    console.log('- DRY_RUN: Set to "true" for testing without real transactions');
     
     process.exit(1);
   }
 }
-
-// Handle graceful shutdown
-process.on('SIGINT', () => {
-  console.log('\n👋 Shutting down arbitrage bot...');
-  process.exit(0);
-});
-
-process.on('SIGTERM', () => {
-  console.log('\n👋 Shutting down arbitrage bot...');
-  process.exit(0);
-});
 
 // Start the bot
 main().catch(console.error);
