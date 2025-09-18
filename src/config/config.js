@@ -38,6 +38,19 @@ const config = {
   DRY_RUN: process.env.DRY_RUN === 'true' || true, // Default to dry run
   PRIVATE_KEY: process.env.PRIVATE_KEY || '',
   
+  // Flashbots Configuration
+  FLASHBOTS: {
+    enabled: process.env.FLASHBOTS_ENABLED === 'true' || false,
+    relayUrl: process.env.FLASHBOTS_RELAY_URL || 'https://relay.flashbots.net',
+    signerPrivateKey: process.env.FLASHBOTS_SIGNER_PRIVATE_KEY || process.env.PRIVATE_KEY || '',
+    profitThresholdUSD: parseFloat(process.env.FLASHBOTS_PROFIT_THRESHOLD) || 50, // $50 minimum for private mempool
+    maxBaseFeeGwei: parseFloat(process.env.FLASHBOTS_MAX_BASE_FEE) || 100, // 100 gwei max
+    priorityFeeGwei: parseFloat(process.env.FLASHBOTS_PRIORITY_FEE) || 2, // 2 gwei priority fee
+    maxRetries: parseInt(process.env.FLASHBOTS_MAX_RETRIES) || 3,
+    timeoutMs: parseInt(process.env.FLASHBOTS_TIMEOUT) || 30000, // 30 seconds
+    fallbackToPublic: process.env.FLASHBOTS_FALLBACK_PUBLIC !== 'false' // true by default
+  },
+  
   // Development
   NODE_ENV: process.env.NODE_ENV || 'development',
   

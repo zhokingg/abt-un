@@ -12,6 +12,7 @@
     "system-test": "node scripts/test-system.js"
   },
   "dependencies": {
+    "@flashbots/ethers-provider-bundle": "^1.0.0",
     "@uniswap/sdk-core": "^4.2.1",
     "@uniswap/v2-sdk": "^3.3.0",
     "@uniswap/v3-sdk": "^3.25.2",

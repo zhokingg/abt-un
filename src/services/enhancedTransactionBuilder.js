@@ -27,7 +27,7 @@ class EnhancedTransactionBuilder extends TransactionBuilder {
       enabled: true,
       maxPriorityFeeGwei: 50, // Maximum priority fee in gwei
       maxBaseFeeMultiplier: 2.0, // Maximum base fee multiplier
-      flashbotsEnabled: false // Future: Flashbots integration
+      flashbotsEnabled: true // Flashbots integration enabled
     };
     
     // Flashloan-specific transaction tracking
@@ -61,9 +61,24 @@ class EnhancedTransactionBuilder extends TransactionBuilder {
         ...gasParams
       };
       
-      // Add MEV protection if enabled
+      // Enhanced MEV protection with Flashbots support
       if (this.mevProtection.enabled) {
-        transactionData.maxPriorityFeePerGas = this.calculateMEVProtectedPriorityFee(gasParams.maxPriorityFeePerGas);
+        if (this.mevProtection.flashbotsEnabled && options.profitUSD) {
+          // Use enhanced Flashbots MEV protection
+          const flashbotsFees = this.calculateFlashbotsMevFees(
+            gasParams.maxFeePerGas,
+            gasParams.gasLimit,
+            options.profitUSD
+          );
+          
+          transactionData.maxFeePerGas = flashbotsFees.maxFeePerGas;
+          transactionData.maxPriorityFeePerGas = flashbotsFees.maxPriorityFeePerGas;
+          
+          console.log(`🔐 Enhanced MEV protection enabled - Priority fee: ${flashbotsFees.priorityFeeGwei}gwei`);
+        } else {
+          // Standard MEV protection
+          transactionData.maxPriorityFeePerGas = this.calculateMEVProtectedPriorityFee(gasParams.maxPriorityFeePerGas);
+        }
       }
       
       // Validate transaction before returning
@@ -76,7 +91,8 @@ class EnhancedTransactionBuilder extends TransactionBuilder {
         transaction: transactionData,
         gasStrategy: gasStrategy.name,
         estimatedCost: await this.estimateTransactionCost(transactionData),
-        mevProtected: this.mevProtection.enabled
+        mevProtected: this.mevProtection.enabled,
+        flashbotsReady: this.mevProtection.flashbotsEnabled
       };
       
     } catch (error) {
@@ -196,6 +212,77 @@ class EnhancedTransactionBuilder extends TransactionBuilder {
     const protectedFee = (BigInt(basePriorityFee) * BigInt(120)) / BigInt(100); // 20% increase
     
     return protectedFee > maxPriorityFeeWei ? maxPriorityFeeWei : protectedFee;
+  }
+  
+  /**
+   * Optimize bundle priority based on profit and market conditions
+   */
+  calculateBundlePriority(arbitrageData, profitUSD, marketConditions = {}) {
+    let priority = 'medium';
+    let priorityMultiplier = 1.0;
+    
+    // High-profit opportunities get higher priority
+    if (profitUSD >= 100) {
+      priority = 'ultra';
+      priorityMultiplier = 2.0;
+    } else if (profitUSD >= 50) {
+      priority = 'high';
+      priorityMultiplier = 1.5;
+    } else if (profitUSD >= 25) {
+      priority = 'medium';
+      priorityMultiplier = 1.2;
+    }
+    
+    // Adjust for network congestion
+    if (marketConditions.congestion === 'HIGH') {
+      priorityMultiplier *= 1.3;
+    } else if (marketConditions.congestion === 'LOW') {
+      priorityMultiplier *= 0.9;
+    }
+    
+    // Cap the multiplier
+    priorityMultiplier = Math.min(priorityMultiplier, 2.5);
+    
+    return {
+      priority,
+      multiplier: priorityMultiplier,
+      estimatedPriorityFeeGwei: Math.ceil(config.FLASHBOTS.priorityFeeGwei * priorityMultiplier)
+    };
+  }
+  
+  /**
+   * Calculate enhanced MEV protection fees for Flashbots bundles
+   */
+  calculateFlashbotsMevFees(baseFeePerGas, gasEstimate, profitUSD) {
+    const config = require('../config/config');
+    
+    // Base priority fee from config
+    let priorityFeeGwei = config.FLASHBOTS.priorityFeeGwei || 2;
+    
+    // Increase priority fee for high-value opportunities
+    if (profitUSD >= 100) {
+      priorityFeeGwei = Math.max(priorityFeeGwei * 2, 5); // At least 5 gwei for high-value
+    } else if (profitUSD >= 50) {
+      priorityFeeGwei = Math.max(priorityFeeGwei * 1.5, 3); // At least 3 gwei for medium-value
+    }
+    
+    const priorityFeeWei = ethers.parseUnits(priorityFeeGwei.toString(), 'gwei');
+    const maxBaseFeeWei = ethers.parseUnits(config.FLASHBOTS.maxBaseFeeGwei.toString(), 'gwei');
+    
+    // Cap the base fee to avoid overpaying
+    const cappedBaseFee = baseFeePerGas > maxBaseFeeWei ? maxBaseFeeWei : baseFeePerGas;
+    
+    // Calculate total fee structure
+    const maxFeePerGas = cappedBaseFee + priorityFeeWei;
+    const totalFee = maxFeePerGas * BigInt(gasEstimate);
+    
+    return {
+      maxFeePerGas,
+      maxPriorityFeePerGas: priorityFeeWei,
+      totalFee,
+      priorityFeeGwei,
+      effectiveBaseFeeGwei: parseFloat(ethers.formatUnits(cappedBaseFee, 'gwei'))
+    };
   }
   
   /**

@@ -4,6 +4,7 @@ const FlashloanService = require('./flashloanService');
 const ContractManager = require('./contractManager');
 const EnhancedTransactionBuilder = require('./enhancedTransactionBuilder');
 const EnhancedProfitCalculator = require('./enhancedProfitCalculator');
+const EnhancedRpcProvider = require('../providers/enhancedRpcProvider');
 const config = require('../config/config');
 
 /**
@@ -52,8 +53,19 @@ class EnhancedCoreArbitrageEngine extends CoreArbitrageEngine {
     try {
       console.log('🚀 Initializing Enhanced Core Arbitrage Engine (Phase 3)...');
       
-      // Initialize Phase 2 components first
-      await super.initialize();
+      // Initialize Enhanced Web3 Provider with Flashbots support
+      console.log('🔧 Initializing Enhanced RPC Provider with Flashbots...');
+      this.web3Provider = new EnhancedRpcProvider();
+      const connected = await this.web3Provider.connect();
+      
+      if (!connected) {
+        throw new Error('Failed to connect Enhanced RPC Provider');
+      }
+      
+      console.log('✅ Enhanced RPC Provider connected');
+      
+      // Initialize Phase 2 components (excluding web3Provider since we already have it)
+      await this.initializePhase2Components();
       
       // Initialize Phase 3 components
       console.log('🔧 Initializing Phase 3 services...');
@@ -93,6 +105,40 @@ class EnhancedCoreArbitrageEngine extends CoreArbitrageEngine {
       console.error('❌ Failed to initialize Enhanced Core Arbitrage Engine:', error.message);
       throw error;
     }
+  }
+  
+  /**
+   * Initialize Phase 2 components without web3Provider
+   */
+  async initializePhase2Components() {
+    // Initialize price monitor
+    const PriceMonitor = require('./priceMonitor');
+    this.priceMonitor = new PriceMonitor(this.web3Provider);
+    await this.priceMonitor.initialize();
+    console.log('✅ Price Monitor initialized');
+    
+    // Initialize profit calculator
+    const ProfitCalculator = require('./profitCalculator');
+    this.profitCalculator = new ProfitCalculator(this.web3Provider);
+    console.log('✅ Profit Calculator initialized');
+    
+    // Initialize mempool monitor
+    const MempoolMonitor = require('./mempoolMonitor');
+    this.mempoolMonitor = new MempoolMonitor(this.web3Provider);
+    console.log('✅ Mempool Monitor initialized');
+    
+    // Initialize transaction builder
+    const TransactionBuilder = require('./transactionBuilder');
+    this.transactionBuilder = new TransactionBuilder(this.web3Provider);
+    console.log('✅ Transaction Builder initialized');
+    
+    // Initialize arbitrage detector
+    const ArbitrageDetector = require('./arbitrageDetector');
+    this.arbitrageDetector = new ArbitrageDetector(this.web3Provider, this.priceMonitor, this.profitCalculator);
+    console.log('✅ Arbitrage Detector initialized');
+    
+    // Set start time for metrics
+    this.stats.startTime = Date.now();
   }
   
   /**
@@ -223,13 +269,18 @@ class EnhancedCoreArbitrageEngine extends CoreArbitrageEngine {
       // Prepare arbitrage data for smart contract
       const arbitrageData = this.prepareArbitrageData(opportunity, profitAnalysis);
       
-      // Build enhanced transaction
+      // Build enhanced transaction with profit information for Flashbots routing
+      const transactionOptions = {
+        ...options,
+        profitUSD: profitAnalysis.enhancedNetProfit
+      };
+      
       const transactionData = await this.enhancedTransactionBuilder.buildFlashloanArbitrageTransaction(
         arbitrageData,
-        options
+        transactionOptions
       );
       
-      // Execute transaction
+      // Execute transaction using smart routing (Flashbots vs public mempool)
       const executionId = `exec_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
       // Track execution
@@ -238,18 +289,23 @@ class EnhancedCoreArbitrageEngine extends CoreArbitrageEngine {
         arbitrageData,
         transactionData,
         startTime: Date.now(),
-        status: 'executing'
+        status: 'executing',
+        profitUSD: profitAnalysis.enhancedNetProfit
       });
       
       // Update opportunity status
       opportunityData.status = 'executing';
       opportunityData.executionId = executionId;
       
-      // Send transaction
-      const txResponse = await this.enhancedTransactionBuilder.sendFlashloanTransaction(
+      // Use Enhanced RPC Provider's smart routing
+      console.log(`💎 Routing transaction with ${profitAnalysis.enhancedNetProfit.toFixed(2)} USD profit...`);
+      
+      const txResponse = await this.web3Provider.routeTransaction(
         transactionData.transaction,
-        arbitrageData,
-        options
+        {
+          ...arbitrageData,
+          estimatedProfitUSD: profitAnalysis.enhancedNetProfit
+        }
       );
       
       // Update metrics
