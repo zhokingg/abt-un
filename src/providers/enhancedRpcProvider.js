@@ -16,7 +16,7 @@ class EnhancedRpcProvider extends Web3Provider {
     this.flashbotsEnabled = false;
     
     // Provider endpoints for failover
-    this.endpoints = config.PHASE4.RPC_ENDPOINTS || [];
+    this.endpoints = config.PHASE4?.RPC_ENDPOINTS || [];
     this.currentEndpointIndex = 0;
     
     // Transaction routing
