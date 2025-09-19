@@ -227,7 +227,8 @@ class AdvancedGasManager extends EventEmitter {
     const priorityFeeGwei = strategy.priorityFeeGwei;
     
     // Calculate max fee per gas
-    const maxBaseFee = (baseFee * BigInt(Math.floor(strategy.baseFeeMultiplier * 100))) / 100n;
+    const baseFeeNumber = Number(baseFee);
+    const maxBaseFee = BigInt(Math.floor(baseFeeNumber * strategy.baseFeeMultiplier));
     const priorityFee = ethers.parseUnits(priorityFeeGwei.toString(), 'gwei');
     const maxFeePerGas = maxBaseFee + priorityFee;
     

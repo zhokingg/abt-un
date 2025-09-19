@@ -163,16 +163,16 @@ class GasOptimizationEngine extends EventEmitter {
     // Intelligent strategy selection based on trade characteristics
     const tradeValue = arbitrageData.amountIn || 10000;
     const expectedProfit = arbitrageData.expectedProfit || 0.01;
-    const profitMargin = expectedProfit / tradeValue;
-    
-    // High-value, high-margin trades - prioritize speed
-    if (tradeValue > 100000 && profitMargin > 0.02) {
-      return this.strategies.SPEED_PRIORITIZED;
-    }
+    const profitMargin = expectedProfit;
     
     // Low-margin trades - prioritize cost savings
     if (profitMargin < 0.005) {
       return this.strategies.AGGRESSIVE_SAVINGS;
+    }
+    
+    // High-value, high-margin trades - prioritize speed
+    if (tradeValue > 100000 && profitMargin > 0.02) {
+      return this.strategies.SPEED_PRIORITIZED;
     }
     
     // High-margin trades - prioritize profit maximization
