@@ -51,6 +51,64 @@ const config = {
     fallbackToPublic: process.env.FLASHBOTS_FALLBACK_PUBLIC !== 'false' // true by default
   },
   
+  // Gas Optimization Configuration
+  GAS_OPTIMIZATION: {
+    enabled: process.env.GAS_OPTIMIZATION_ENABLED !== 'false', // Enabled by default
+    
+    // Gas pool management
+    gasPool: {
+      minReserveETH: parseFloat(process.env.GAS_POOL_MIN_RESERVE) || 0.1, // 0.1 ETH
+      targetReserveETH: parseFloat(process.env.GAS_POOL_TARGET_RESERVE) || 0.5, // 0.5 ETH
+      autoReplenish: process.env.GAS_POOL_AUTO_REPLENISH !== 'false', // Enabled by default
+      lowThresholdPercent: parseFloat(process.env.GAS_POOL_LOW_THRESHOLD) || 30 // 30%
+    },
+    
+    // Gas strategies
+    strategies: {
+      default: process.env.GAS_STRATEGY_DEFAULT || 'BALANCED_OPTIMIZATION',
+      aggressiveSavings: {
+        maxGasPriceGwei: parseFloat(process.env.GAS_AGGRESSIVE_MAX_PRICE) || 50,
+        profitThreshold: parseFloat(process.env.GAS_AGGRESSIVE_PROFIT_THRESHOLD) || 0.001 // 0.1%
+      },
+      speedPrioritized: {
+        maxGasPriceGwei: parseFloat(process.env.GAS_SPEED_MAX_PRICE) || 200,
+        profitThreshold: parseFloat(process.env.GAS_SPEED_PROFIT_THRESHOLD) || 0.01 // 1%
+      }
+    },
+    
+    // ML gas prediction
+    mlPrediction: {
+      enabled: process.env.GAS_ML_PREDICTION_ENABLED !== 'false',
+      modelConfidenceThreshold: parseFloat(process.env.GAS_ML_CONFIDENCE_THRESHOLD) || 0.7,
+      maxHistorySize: parseInt(process.env.GAS_ML_MAX_HISTORY) || 1000,
+      predictionCacheTimeMs: parseInt(process.env.GAS_ML_CACHE_TIME) || 30000 // 30 seconds
+    },
+    
+    // Gas optimization targets
+    targets: {
+      savingsPercent: parseFloat(process.env.GAS_SAVINGS_TARGET) || 30, // 30% savings target
+      maxGasCostPercent: parseFloat(process.env.GAS_MAX_COST_PERCENT) || 30, // Max 30% of profit on gas
+      optimizationTimeoutMs: parseInt(process.env.GAS_OPTIMIZATION_TIMEOUT) || 5000 // 5 seconds
+    },
+    
+    // Batch processing
+    batchProcessing: {
+      enabled: process.env.GAS_BATCH_PROCESSING_ENABLED === 'true',
+      maxBatchSize: parseInt(process.env.GAS_MAX_BATCH_SIZE) || 5,
+      batchTimeoutMs: parseInt(process.env.GAS_BATCH_TIMEOUT) || 10000, // 10 seconds
+      minBatchSavings: parseFloat(process.env.GAS_MIN_BATCH_SAVINGS) || 15 // 15% minimum savings
+    },
+    
+    // Analytics and monitoring
+    analytics: {
+      enabled: process.env.GAS_ANALYTICS_ENABLED !== 'false',
+      retentionDays: parseInt(process.env.GAS_ANALYTICS_RETENTION) || 30,
+      reportingInterval: parseInt(process.env.GAS_ANALYTICS_REPORTING_INTERVAL) || 3600000, // 1 hour
+      alertOnLowEfficiency: process.env.GAS_ALERT_LOW_EFFICIENCY !== 'false',
+      efficiencyThreshold: parseFloat(process.env.GAS_EFFICIENCY_THRESHOLD) || 20 // 20% minimum efficiency
+    }
+  },
+  
   // Development
   NODE_ENV: process.env.NODE_ENV || 'development',
   

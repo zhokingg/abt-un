@@ -7,10 +7,11 @@ const ProfitCalculator = require('./profitCalculator');
  * Extends the existing ProfitCalculator with comprehensive flashloan cost analysis
  */
 class EnhancedProfitCalculator extends ProfitCalculator {
-  constructor(web3Provider, flashloanService) {
+  constructor(web3Provider, flashloanService, gasOptimizationEngine = null) {
     super(web3Provider);
     
     this.flashloanService = flashloanService;
+    this.gasOptimizationEngine = gasOptimizationEngine;
     
     // Enhanced cost structures
     this.enhancedCosts = {
@@ -398,7 +399,7 @@ class EnhancedProfitCalculator extends ProfitCalculator {
   /**
    * Generate actionable recommendations
    */
-  generateRecommendations(netProfit, riskAdjustment, liquidityAnalysis) {
+  generateRecommendations(netProfit, riskAdjustment, liquidityAnalysis, gasOptimization = null) {
     const recommendations = [];
     
     if (netProfit <= 0) {
@@ -419,6 +420,19 @@ class EnhancedProfitCalculator extends ProfitCalculator {
     
     if (liquidityAnalysis.crossDexLiquidity && !liquidityAnalysis.crossDexLiquidity.symmetrical) {
       recommendations.push('LIQUIDITY_IMBALANCE: Significant liquidity difference between DEXs');
+    }
+    
+    // Gas optimization recommendations
+    if (gasOptimization) {
+      if (!gasOptimization.enabled) {
+        recommendations.push('GAS_OPTIMIZATION: Enable gas optimization engine for potential 20-40% savings');
+      } else if (gasOptimization.savingsPercent > 20) {
+        recommendations.push(`GAS_EFFICIENT: Excellent gas optimization achieved (${gasOptimization.savingsPercent.toFixed(1)}% savings)`);
+      } else if (gasOptimization.savingsPercent > 10) {
+        recommendations.push(`GAS_OPTIMIZED: Good gas optimization (${gasOptimization.savingsPercent.toFixed(1)}% savings)`);
+      } else if (gasOptimization.enabled && gasOptimization.savingsPercent < 5) {
+        recommendations.push('GAS_REVIEW: Consider different gas strategy for better optimization');
+      }
     }
     
     if (recommendations.length === 0) {
@@ -521,20 +535,50 @@ class EnhancedProfitCalculator extends ProfitCalculator {
     return { costUSD, annualRate, timeHours };
   }
   
-  async calculateFlashloanGasCosts(gasPrice) {
-    const gasEstimate = this.enhancedCosts.gasEstimates.flashloanArbitrage;
-    const gasPriceGwei = parseFloat(ethers.formatUnits(gasPrice, 'gwei'));
-    const ethPrice = 2000; // Simplified - would get real price
+  async calculateFlashloanGasCosts(gasPrice, arbitrageData = null) {
+    let gasEstimate = this.enhancedCosts.gasEstimates.flashloanArbitrage;
+    let gasPriceGwei = parseFloat(ethers.formatUnits(gasPrice, 'gwei'));
+    let optimizedCost = null;
+    let gasSavings = 0;
     
+    // Use gas optimization engine if available
+    if (this.gasOptimizationEngine && arbitrageData) {
+      try {
+        console.log('🔧 Using gas optimization engine for cost calculation...');
+        
+        const optimizationResult = await this.gasOptimizationEngine.optimizeTransaction(
+          arbitrageData,
+          { strategy: 'PROFIT_MAXIMIZATION' }
+        );
+        
+        if (optimizationResult.transaction && optimizationResult.gasParams) {
+          gasEstimate = Number(optimizationResult.gasParams.gasLimit);
+          gasPriceGwei = Number(ethers.formatUnits(optimizationResult.gasParams.maxFeePerGas, 'gwei'));
+          optimizedCost = optimizationResult.estimatedCostUSD || 0;
+          gasSavings = optimizationResult.savings.absolute || 0;
+          
+          console.log(`⛽ Optimized gas: ${gasEstimate} at ${gasPriceGwei.toFixed(2)} gwei`);
+          console.log(`💰 Gas savings: $${gasSavings.toFixed(2)} (${optimizationResult.savings.percentage.toFixed(1)}%)`);
+        }
+      } catch (error) {
+        console.warn('⚠️ Gas optimization failed, using standard calculation:', error.message);
+      }
+    }
+    
+    const ethPrice = 2000; // Simplified - would get real price
     const gasCostETH = (gasEstimate * gasPriceGwei) / 1e9;
-    const totalCostUSD = gasCostETH * ethPrice;
+    const totalCostUSD = optimizedCost || (gasCostETH * ethPrice);
     
     return {
       gasEstimate,
       gasPriceGwei,
       gasCostETH,
       totalCostUSD,
-      ethPrice
+      ethPrice,
+      optimized: !!optimizedCost,
+      gasSavings,
+      originalCostUSD: gasCostETH * ethPrice,
+      optimizationUsed: !!this.gasOptimizationEngine
     };
   }
   
