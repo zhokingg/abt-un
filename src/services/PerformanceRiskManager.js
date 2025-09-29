@@ -1123,4 +1123,4 @@ class PerformanceRiskManager extends EventEmitter {
   }
 }
 
-export default PerformanceRiskManager;
+export default PerformanceRiskManager;module.exports = PerformanceRiskManager;

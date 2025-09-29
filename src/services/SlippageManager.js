@@ -754,4 +754,4 @@ class SlippageManager extends EventEmitter {
   }
 }
 
-export default SlippageManager;
+export default SlippageManager;module.exports = SlippageManager;

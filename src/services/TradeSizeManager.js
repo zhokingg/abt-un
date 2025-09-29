@@ -876,4 +876,4 @@ class TradeSizeManager extends EventEmitter {
   }
 }
 
-export default TradeSizeManager;
+export default TradeSizeManager;module.exports = TradeSizeManager;

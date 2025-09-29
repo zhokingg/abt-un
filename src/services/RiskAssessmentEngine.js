@@ -1147,4 +1147,4 @@ class RiskAssessmentEngine extends EventEmitter {
   }
 }
 
-export default RiskAssessmentEngine;
+export default RiskAssessmentEngine;module.exports = RiskAssessmentEngine;

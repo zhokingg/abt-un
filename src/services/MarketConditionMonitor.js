@@ -1069,4 +1069,4 @@ class MarketConditionMonitor extends EventEmitter {
   }
 }
 
-export default MarketConditionMonitor;
+export default MarketConditionMonitor;module.exports = MarketConditionMonitor;

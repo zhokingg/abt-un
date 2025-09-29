@@ -1195,4 +1195,4 @@ class EmergencyStopManager extends EventEmitter {
   }
 }
 
-export default EmergencyStopManager;
+export default EmergencyStopManager;module.exports = EmergencyStopManager;

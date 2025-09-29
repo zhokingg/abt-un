@@ -958,4 +958,4 @@ class CircuitBreakerManager extends EventEmitter {
   }
 }
 
-export default CircuitBreakerManager;
+export default CircuitBreakerManager;module.exports = CircuitBreakerManager;

@@ -1,6 +1,7 @@
 {
   "name": "v2-v3-arbitrage-bot",
   "version": "1.0.0",
+  "type": "module",
   "description": "Uniswap V2/V3 Arbitrage Detection System",
   "main": "src/index.js",
   "scripts": {
