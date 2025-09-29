@@ -1,4 +1,4 @@
-require('dotenv').config();
+import 'dotenv/config';
 
 const config = {
   // Network Configuration
@@ -233,4 +233,4 @@ if (config.NODE_ENV === 'production' && !config.PHASE4.EXTERNAL_SERVICES.redis.u
   console.log('✅ Production Redis configuration detected');
 }
 
-module.exports = config;
+export default config;

@@ -1,5 +1,5 @@
-const EventEmitter = require('events');
-const { ethers } = require('ethers');
+import { EventEmitter } from 'events';
+import { ethers } from 'ethers';
 
 /**
  * BacktestingEngine - Phase 4: Historical strategy validation and simulation
@@ -621,4 +621,4 @@ class BacktestingEngine extends EventEmitter {
   }
 }
 
-module.exports = BacktestingEngine;
+export default BacktestingEngine;

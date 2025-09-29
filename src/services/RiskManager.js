@@ -1,4 +1,4 @@
-const EventEmitter = require('events');
+import { EventEmitter } from 'events';
 
 /**
  * RiskManager - Phase 4: Advanced risk assessment and controls
@@ -1191,4 +1191,4 @@ class RiskManager extends EventEmitter {
   }
 }
 
-module.exports = RiskManager;
+export default RiskManager;

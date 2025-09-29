@@ -1,6 +1,6 @@
-const { ethers } = require('ethers');
-const EventEmitter = require('events');
-const config = require('../config/config');
+import { ethers } from 'ethers';
+import { EventEmitter } from 'events';
+import config from '../config/config.js';
 
 /**
  * Mempool Monitoring for MEV Opportunity Detection
@@ -515,4 +515,4 @@ class MempoolMonitor extends EventEmitter {
   }
 }
 
-module.exports = MempoolMonitor;
+export default MempoolMonitor;

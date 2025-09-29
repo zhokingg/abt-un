@@ -1,7 +1,7 @@
 // src/index.js
-require('dotenv').config();
-const CoreArbitrageEngine = require('./services/coreArbitrageEngine');
-const Phase4Manager = require('./services/Phase4Manager');
+import 'dotenv/config';
+import CoreArbitrageEngine from './services/coreArbitrageEngine.js';
+import Phase4Manager from './services/Phase4Manager.js';
 
 async function main() {
   try {
