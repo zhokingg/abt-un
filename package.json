@@ -33,5 +33,6 @@
     "hardhat": "^3.0.6",
     "jest": "^29.7.0",
     "nodemon": "^3.0.0"
-  }
+  },
+  "type": "module"
 }
