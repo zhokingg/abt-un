@@ -45,6 +45,10 @@ Thumbs.db
 dist/
 build/
 coverage/
+artifacts/
+cache/
+typechain/
+typechain-types/
 
 # Temporary files
 temp/
