@@ -1,4 +1,5 @@
-const EventEmitter = require('events');
+import { EventEmitter } from 'events';
+import os from 'os';
 
 /**
  * PerformanceAnalyzer - Phase 4: Real-time performance tracking and analytics
@@ -70,7 +71,7 @@ class PerformanceAnalyzer extends EventEmitter {
       system: {
         cpu: {
           usage: [],
-          cores: require('os').cpus().length,
+          cores: os.cpus().length,
           loadAverage: []
         },
         memory: {
@@ -247,7 +248,7 @@ class PerformanceAnalyzer extends EventEmitter {
       timestamp: Date.now(),
       cpu: {
         usage: this.calculateCpuUsage(cpuUsage),
-        loadAverage: require('os').loadavg()
+        loadAverage: os.loadavg()
       },
       memory: {
         heapUsed: memUsage.heapUsed,
@@ -992,4 +993,4 @@ class PerformanceAnalyzer extends EventEmitter {
   }
 }
 
-module.exports = PerformanceAnalyzer;
+export default PerformanceAnalyzer;

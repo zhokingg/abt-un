@@ -1,5 +1,5 @@
-const EventEmitter = require('events');
-const axios = require('axios');
+import { EventEmitter } from 'events';
+import axios from 'axios';
 
 /**
  * AlertingService - Phase 4: Multi-channel notification system
@@ -771,4 +771,4 @@ class AlertingService extends EventEmitter {
   }
 }
 
-module.exports = AlertingService;
+export default AlertingService;

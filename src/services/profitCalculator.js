@@ -1,5 +1,5 @@
-const { ethers } = require('ethers');
-const config = require('../config/config');
+import { ethers } from 'ethers';
+import config from '../config/config.js';
 
 /**
  * Enhanced Profit Calculation Engine
@@ -471,4 +471,4 @@ class ProfitCalculator {
   }
 }
 
-module.exports = ProfitCalculator;
+export default ProfitCalculator;

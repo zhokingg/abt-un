@@ -1,6 +1,6 @@
-const { ethers } = require('ethers');
-const EventEmitter = require('events');
-const config = require('../config/config');
+import { ethers } from 'ethers';
+import { EventEmitter } from 'events';
+import config from '../config/config.js';
 
 /**
  * Real-time Price Monitoring System for Uniswap V2 and Sushiswap
@@ -357,4 +357,4 @@ class PriceMonitor extends EventEmitter {
   }
 }
 
-module.exports = PriceMonitor;
+export default PriceMonitor;

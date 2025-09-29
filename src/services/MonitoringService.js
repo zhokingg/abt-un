@@ -1,6 +1,6 @@
-const EventEmitter = require('events');
-const winston = require('winston');
-const os = require('os');
+import { EventEmitter } from 'events';
+import winston from 'winston';
+import os from 'os';
 
 /**
  * MonitoringService - Phase 4: Comprehensive system monitoring and logging
@@ -742,4 +742,4 @@ class MonitoringService extends EventEmitter {
   }
 }
 
-module.exports = MonitoringService;
+export default MonitoringService;

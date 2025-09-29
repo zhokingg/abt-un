@@ -1,11 +1,11 @@
-const EventEmitter = require('events');
-const NetworkOptimizer = require('./NetworkOptimizer');
-const BacktestingEngine = require('./BacktestingEngine');
-const MonitoringService = require('./MonitoringService');
-const AlertingService = require('./AlertingService');
-const PerformanceAnalyzer = require('./PerformanceAnalyzer');
-const RiskManager = require('./RiskManager');
-const config = require('../config/config');
+import { EventEmitter } from 'events';
+import NetworkOptimizer from './NetworkOptimizer.js';
+import BacktestingEngine from './BacktestingEngine.js';
+import MonitoringService from './MonitoringService.js';
+import AlertingService from './AlertingService.js';
+import PerformanceAnalyzer from './PerformanceAnalyzer.js';
+import RiskManager from './RiskManager.js';
+import config from '../config/config.js';
 
 /**
  * Phase4Manager - Orchestrates all Phase 4 Performance & Safety components
@@ -769,4 +769,4 @@ class Phase4Manager extends EventEmitter {
   }
 }
 
-module.exports = Phase4Manager;
+export default Phase4Manager;

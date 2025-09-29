@@ -1,5 +1,5 @@
-const config = require('../config/config');
-const { ethers } = require('ethers');
+import config from '../config/config.js';
+import { ethers } from 'ethers';
 
 class ArbitrageDetector {
   constructor() {
@@ -259,4 +259,4 @@ class ArbitrageDetector {
   }
 }
 
-module.exports = ArbitrageDetector;
+export default ArbitrageDetector;

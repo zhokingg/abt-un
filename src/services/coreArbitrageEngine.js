@@ -1,11 +1,11 @@
-const EventEmitter = require('events');
-const PriceMonitor = require('./priceMonitor');
-const ProfitCalculator = require('./profitCalculator');
-const MempoolMonitor = require('./mempoolMonitor');
-const TransactionBuilder = require('./transactionBuilder');
-const ArbitrageDetector = require('./arbitrageDetector');
-const Web3Provider = require('../providers/web3Provider');
-const config = require('../config/config');
+import { EventEmitter } from 'events';
+import PriceMonitor from './priceMonitor.js';
+import ProfitCalculator from './profitCalculator.js';
+import MempoolMonitor from './mempoolMonitor.js';
+import TransactionBuilder from './transactionBuilder.js';
+import ArbitrageDetector from './arbitrageDetector.js';
+import Web3Provider from '../providers/web3Provider.js';
+import config from '../config/config.js';
 
 /**
  * Core Arbitrage Engine - Phase 2 Implementation
@@ -743,4 +743,4 @@ class CoreArbitrageEngine extends EventEmitter {
   }
 }
 
-module.exports = CoreArbitrageEngine;
+export default CoreArbitrageEngine;

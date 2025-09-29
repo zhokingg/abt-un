@@ -1,5 +1,5 @@
-const { ethers } = require('ethers');
-const config = require('../config/config');
+import { ethers } from 'ethers';
+import config from '../config/config.js';
 
 class Web3Provider {
   constructor() {
@@ -14,7 +14,7 @@ class Web3Provider {
       console.log('🌐 Connecting to Ethereum network...');
       
       // Create provider
-      this.provider = new ethers.providers.JsonRpcProvider(config.RPC_URL);
+      this.provider = new ethers.JsonRpcProvider(config.RPC_URL);
       
       // Test connection
       const network = await this.provider.getNetwork();
@@ -32,7 +32,7 @@ class Web3Provider {
         
         // Check balance
         const balance = await this.provider.getBalance(address);
-        const ethBalance = ethers.utils.formatEther(balance);
+        const ethBalance = ethers.formatEther(balance);
         console.log(`💰 ETH Balance: ${ethBalance}`);
         
         if (parseFloat(ethBalance) < 0.01) {
@@ -130,4 +130,4 @@ class Web3Provider {
   }
 }
 
-module.exports = Web3Provider;
+export default Web3Provider;

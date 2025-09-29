@@ -1,5 +1,5 @@
-const { ethers } = require('ethers');
-const EventEmitter = require('events');
+import { ethers } from 'ethers';
+import { EventEmitter } from 'events';
 
 /**
  * NetworkOptimizer - Phase 4: Multi-RPC endpoint management with intelligent failover
@@ -474,4 +474,4 @@ class NetworkOptimizer extends EventEmitter {
   }
 }
 
-module.exports = NetworkOptimizer;
+export default NetworkOptimizer;
