@@ -8,17 +8,26 @@ import "../interfaces/IERC20.sol";
 import "./ArbitrageRouter.sol";
 import "./ProfitCalculator.sol";
 import "../security/EmergencyStop.sol";
+import "../risk/RiskManager.sol";
+import "../fees/FeeManager.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /**
  * @title FlashloanArbitrage
  * @notice Main arbitrage execution contract using Aave V3 flashloans
  */
-contract FlashloanArbitrage is IFlashLoanReceiver, EmergencyStop {
+contract FlashloanArbitrage is IFlashLoanReceiver, EmergencyStop, ReentrancyGuard {
     IPoolAddressesProvider public constant ADDRESSES_PROVIDER = 
         IPoolAddressesProvider(0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e); // Mainnet Aave V3
     
     ArbitrageRouter public arbitrageRouter;
     ProfitCalculator public profitCalculator;
+    RiskManager public riskManager;
+    FeeManager public feeManager;
+    
+    // Multi-DEX support
+    mapping(string => address) public supportedDEXs; // DEX name => router address
+    string[] public dexNames;
     
     uint256 public constant MAX_TRADE_AMOUNT = 1000000 * 1e6; // $1M USDC max
     uint256 public constant MIN_PROFIT_BPS = 10; // 0.1% minimum profit
@@ -57,12 +66,24 @@ contract FlashloanArbitrage is IFlashLoanReceiver, EmergencyStop {
         address indexed recipient
     );
     
-    constructor(address _arbitrageRouter, address _profitCalculator) {
+    constructor(
+        address _arbitrageRouter, 
+        address _profitCalculator,
+        address _riskManager,
+        address _feeManager
+    ) {
         require(_arbitrageRouter != address(0), "FlashloanArbitrage: invalid router");
         require(_profitCalculator != address(0), "FlashloanArbitrage: invalid calculator");
+        require(_riskManager != address(0), "FlashloanArbitrage: invalid risk manager");
+        require(_feeManager != address(0), "FlashloanArbitrage: invalid fee manager");
         
         arbitrageRouter = ArbitrageRouter(_arbitrageRouter);
         profitCalculator = ProfitCalculator(_profitCalculator);
+        riskManager = RiskManager(_riskManager);
+        feeManager = FeeManager(_feeManager);
+        
+        // Initialize supported DEXs
+        _initializeSupportedDEXs();
     }
     
     /**
@@ -71,12 +92,23 @@ contract FlashloanArbitrage is IFlashLoanReceiver, EmergencyStop {
      */
     function executeArbitrage(ArbitrageData memory arbitrageData) 
         external 
+        nonReentrant
         notInEmergencyStop
         onlyOperator 
     {
         require(arbitrageData.amountIn > 0, "FlashloanArbitrage: invalid amount");
         require(arbitrageData.amountIn <= MAX_TRADE_AMOUNT, "FlashloanArbitrage: amount too large");
         require(block.timestamp <= arbitrageData.deadline, "FlashloanArbitrage: expired");
+        
+        // Risk management validation
+        (bool isValid, string memory reason) = riskManager.validateTrade(
+            msg.sender,
+            arbitrageData.tokenA,
+            arbitrageData.amountIn,
+            0, // We'll calculate expected profit below
+            tx.gasprice
+        );
+        require(isValid, string(abi.encodePacked("Risk check failed: ", reason)));
         
         // Validate profit potential before executing
         ProfitCalculator.ProfitResult memory profitResult = profitCalculator.calculateProfit(
@@ -105,7 +137,7 @@ contract FlashloanArbitrage is IFlashLoanReceiver, EmergencyStop {
         amounts[0] = arbitrageData.amountIn;
         modes[0] = 0; // No debt, we'll repay in the same transaction
         
-        bytes memory params = abi.encode(arbitrageData);
+        bytes memory params = abi.encode(arbitrageData, msg.sender);
         
         IPool pool = IPool(ADDRESSES_PROVIDER.getPool());
         pool.flashLoan(
@@ -308,5 +340,79 @@ contract FlashloanArbitrage is IFlashLoanReceiver, EmergencyStop {
         );
         
         isProfitable = profitResult.isProfitable;
+    }
+    
+    /**
+     * @notice Initialize supported DEXs
+     */
+    function _initializeSupportedDEXs() internal {
+        // Uniswap V2
+        supportedDEXs["uniswap-v2"] = 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D;
+        dexNames.push("uniswap-v2");
+        
+        // Uniswap V3
+        supportedDEXs["uniswap-v3"] = 0xE592427A0AEce92De3Edee1F18E0157C05861564;
+        dexNames.push("uniswap-v3");
+        
+        // SushiSwap
+        supportedDEXs["sushiswap"] = 0xd9e1cE17f2641f24aE83637ab66a2cca9C378B9F;
+        dexNames.push("sushiswap");
+    }
+    
+    /**
+     * @notice Add supported DEX
+     * @param name DEX name
+     * @param router Router address
+     */
+    function addSupportedDEX(string calldata name, address router) external onlyOwner {
+        require(router != address(0), "FlashloanArbitrage: invalid router");
+        require(supportedDEXs[name] == address(0), "FlashloanArbitrage: DEX already exists");
+        
+        supportedDEXs[name] = router;
+        dexNames.push(name);
+    }
+    
+    /**
+     * @notice Update risk manager
+     * @param newRiskManager New risk manager address
+     */
+    function updateRiskManager(address newRiskManager) external onlyOwner {
+        require(newRiskManager != address(0), "FlashloanArbitrage: invalid risk manager");
+        riskManager = RiskManager(newRiskManager);
+    }
+    
+    /**
+     * @notice Update fee manager
+     * @param newFeeManager New fee manager address
+     */
+    function updateFeeManager(address newFeeManager) external onlyOwner {
+        require(newFeeManager != address(0), "FlashloanArbitrage: invalid fee manager");
+        feeManager = FeeManager(newFeeManager);
+    }
+    
+    /**
+     * @notice Get supported DEX names
+     * @return names Array of supported DEX names
+     */
+    function getSupportedDEXs() external view returns (string[] memory names) {
+        names = dexNames;
+    }
+    
+    /**
+     * @notice Get DEX router address
+     * @param name DEX name
+     * @return router Router address
+     */
+    function getDEXRouter(string calldata name) external view returns (address router) {
+        router = supportedDEXs[name];
+    }
+    
+    /**
+     * @notice Check if DEX is supported
+     * @param name DEX name
+     * @return isSupported Whether DEX is supported
+     */
+    function isDEXSupported(string calldata name) external view returns (bool isSupported) {
+        isSupported = supportedDEXs[name] != address(0);
     }
 }
