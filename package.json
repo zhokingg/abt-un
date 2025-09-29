@@ -7,6 +7,12 @@
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
     "test": "jest",
+    "test:contracts": "npx hardhat test test/contracts/",
+    "test:integration": "npx hardhat test test/contracts/integration/",
+    "test:gas": "npx hardhat test test/contracts/GasOptimization.test.js",
+    "compile": "npx hardhat compile",
+    "deploy:localhost": "npx hardhat run scripts/deployment/deploy-contracts.js --network localhost",
+    "deploy:mainnet": "npx hardhat run scripts/deployment/deploy-contracts.js --network mainnet",
     "setup": "node scripts/setup.js",
     "health": "node scripts/health-check.js",
     "system-test": "node scripts/test-system.js"
@@ -33,5 +39,6 @@
     "hardhat": "^3.0.6",
     "jest": "^29.7.0",
     "nodemon": "^3.0.0"
-  }
+  },
+  "type": "module"
 }

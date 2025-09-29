@@ -1,8 +1,7 @@
-require("@nomicfoundation/hardhat-toolbox");
-require('dotenv').config();
+import 'dotenv/config';
 
 /** @type import('hardhat/config').HardhatUserConfig */
-module.exports = {
+export default {
   solidity: {
     version: "0.8.19",
     settings: {
@@ -11,21 +10,5 @@ module.exports = {
         runs: 200
       }
     }
-  },
-  networks: {
-    hardhat: {
-      forking: {
-        url: process.env.RPC_URL || "https://mainnet.infura.io/v3/YOUR_INFURA_KEY",
-        blockNumber: 18500000 // Fixed block for consistent testing
-      }
-    },
-    mainnet: {
-      url: process.env.RPC_URL || "https://mainnet.infura.io/v3/YOUR_INFURA_KEY",
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : []
-    }
-  },
-  gasReporter: {
-    enabled: true,
-    currency: 'USD'
   }
 };
