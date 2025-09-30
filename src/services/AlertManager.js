@@ -65,6 +65,22 @@ class AlertManager extends EventEmitter {
         rateLimitPerMinute: 30,
         supportedFormats: ['text', 'blocks', 'attachments']
       },
+      sms: {
+        enabled: this.options.enableSMS,
+        twilioAccountSid: options.twilioAccountSid,
+        twilioAuthToken: options.twilioAuthToken,
+        twilioPhoneNumber: options.twilioPhoneNumber,
+        recipients: options.smsRecipients || [],
+        rateLimitPerMinute: 5,
+        supportedFormats: ['text']
+      },
+      push: {
+        enabled: this.options.enablePush,
+        webPushConfig: options.webPushConfig,
+        subscriptions: options.pushSubscriptions || [],
+        rateLimitPerMinute: 100,
+        supportedFormats: ['json']
+      },
       webhooks: {
         enabled: this.options.enableWebhooks,
         endpoints: options.webhookEndpoints || [],
@@ -122,6 +138,30 @@ class AlertManager extends EventEmitter {
         fields: ['type', 'estimatedProfit', 'risk'],
         priority: 'critical',
         channels: ['discord', 'telegram']
+      },
+      system_failure: {
+        title: '🚨 Critical System Failure',
+        fields: ['component', 'error', 'impact', 'timestamp'],
+        priority: 'critical',
+        channels: ['discord', 'telegram', 'sms', 'email']
+      },
+      emergency_stop: {
+        title: '🛑 Emergency Stop Triggered',
+        fields: ['trigger', 'reason', 'timestamp'],
+        priority: 'critical',
+        channels: ['discord', 'telegram', 'sms', 'slack', 'email']
+      },
+      high_loss: {
+        title: '💸 High Loss Alert',
+        fields: ['amount', 'cause', 'timestamp'],
+        priority: 'critical',
+        channels: ['sms', 'discord', 'telegram', 'email']
+      },
+      network_issue: {
+        title: '🌐 Network Connectivity Issue',
+        fields: ['endpoint', 'latency', 'status'],
+        priority: 'high',
+        channels: ['slack', 'discord']
       }
     };
     
@@ -353,6 +393,12 @@ class AlertManager extends EventEmitter {
         case 'slack':
           result = await this.sendSlackAlert(alert);
           break;
+        case 'sms':
+          result = await this.sendSMSAlert(alert);
+          break;
+        case 'push':
+          result = await this.sendPushAlert(alert);
+          break;
         case 'webhooks':
           result = await this.sendWebhookAlert(alert);
           break;
@@ -576,6 +622,125 @@ class AlertManager extends EventEmitter {
     }
     
     return { sent: successful, total: endpoints.length };
+  }
+  
+  /**
+   * Send SMS alert via Twilio
+   */
+  async sendSMSAlert(alert) {
+    const config = this.channels.sms;
+    if (!config.twilioAccountSid || !config.twilioAuthToken || !config.twilioPhoneNumber) {
+      throw new Error('Twilio SMS not configured');
+    }
+    
+    if (config.recipients.length === 0) {
+      throw new Error('No SMS recipients configured');
+    }
+    
+    const message = this.createSMSMessage(alert);
+    
+    // Mock Twilio implementation - in real app would use Twilio SDK
+    console.log(`SMS Alert (mock) to ${config.recipients.length} recipients: ${message}`);
+    
+    return { 
+      success: true, 
+      mock: true, 
+      recipients: config.recipients.length,
+      message: message.substring(0, 50) + '...'
+    };
+  }
+  
+  /**
+   * Create SMS message (limited to 160 characters)
+   */
+  createSMSMessage(alert) {
+    let message = `🚨 ${alert.template.title}\n`;
+    
+    // Add most critical fields first
+    const criticalFields = alert.template.fields.slice(0, 2);
+    for (const field of criticalFields) {
+      if (alert.data[field] !== undefined && message.length < 120) {
+        const value = this.formatValue(alert.data[field]);
+        const addition = `${field}: ${value}\n`;
+        if (message.length + addition.length <= 140) {
+          message += addition;
+        }
+      }
+    }
+    
+    message += `ID: ${alert.id.slice(-6)}`;
+    
+    return message.substring(0, 160); // SMS character limit
+  }
+  
+  /**
+   * Send Push notification
+   */
+  async sendPushAlert(alert) {
+    const config = this.channels.push;
+    if (!config.webPushConfig || config.subscriptions.length === 0) {
+      throw new Error('Push notifications not configured');
+    }
+    
+    const payload = this.createPushPayload(alert);
+    
+    // Mock web push implementation - in real app would use web-push library
+    console.log(`Push Alert (mock) to ${config.subscriptions.length} subscribers:`, payload.title);
+    
+    return { 
+      success: true, 
+      mock: true, 
+      subscribers: config.subscriptions.length,
+      title: payload.title
+    };
+  }
+  
+  /**
+   * Create push notification payload
+   */
+  createPushPayload(alert) {
+    const urgencyLevels = {
+      low: 'low',
+      medium: 'normal', 
+      high: 'high',
+      critical: 'high'
+    };
+    
+    let body = '';
+    for (const field of alert.template.fields.slice(0, 2)) {
+      if (alert.data[field] !== undefined) {
+        body += `${this.capitalizeFirst(field)}: ${this.formatValue(alert.data[field])}\n`;
+      }
+    }
+    
+    return {
+      title: alert.template.title,
+      body: body.trim(),
+      icon: this.getAlertIcon(alert.priority),
+      badge: '/images/badge.png',
+      tag: alert.type,
+      requireInteraction: alert.priority === 'critical',
+      urgency: urgencyLevels[alert.priority] || 'normal',
+      data: {
+        alertId: alert.id,
+        type: alert.type,
+        priority: alert.priority,
+        timestamp: alert.timestamp
+      }
+    };
+  }
+  
+  /**
+   * Get alert icon based on priority
+   */
+  getAlertIcon(priority) {
+    const icons = {
+      low: '/images/alert-low.png',
+      medium: '/images/alert-medium.png',
+      high: '/images/alert-high.png',
+      critical: '/images/alert-critical.png'
+    };
+    return icons[priority] || icons.medium;
   }
   
   /**
