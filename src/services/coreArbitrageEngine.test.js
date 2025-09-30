@@ -1,9 +1,10 @@
-const CoreArbitrageEngine = require('./coreArbitrageEngine');
-const config = require('../config/config');
+import { jest, describe, test, expect, beforeAll, beforeEach, afterEach } from '@jest/globals';
+import CoreArbitrageEngine from './coreArbitrageEngine.js';
+import config from '../config/config.js';
 
 // Mock Web3Provider to avoid requiring actual blockchain connection
-jest.mock('../providers/web3Provider', () => {
-  return jest.fn().mockImplementation(() => ({
+jest.unstable_mockModule('../providers/web3Provider.js', () => ({
+  default: jest.fn().mockImplementation(() => ({
     connect: jest.fn().mockResolvedValue(true),
     isConnected: jest.fn().mockReturnValue(true),
     provider: {
@@ -13,8 +14,8 @@ jest.mock('../providers/web3Provider', () => {
       removeAllListeners: jest.fn()
     },
     disconnect: jest.fn()
-  }));
-});
+  }))
+}));
 
 // Set up proper config for tests
 beforeAll(() => {

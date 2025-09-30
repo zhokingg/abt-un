@@ -8,8 +8,17 @@ export default {
   ],
   testMatch: [
     '**/src/**/*.test.js',
-    '**/tests/**/*.test.js'
+    '**/tests/**/*.test.js',
+    '**/test/**/*.test.js'
   ],
-  collectCoverage: false,
+  collectCoverage: true,
+  coverageDirectory: 'coverage',
+  coverageReporters: ['text', 'lcov', 'html'],
+  coveragePathIgnorePatterns: [
+    '/node_modules/',
+    '/test/',
+    '/tests/',
+    '\\.test\\.js$'
+  ],
   verbose: true
 };
