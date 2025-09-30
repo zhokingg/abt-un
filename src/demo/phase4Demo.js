@@ -1,9 +1,9 @@
-const Phase4Manager = require('../services/Phase4Manager');
-const config = require('../config/config');
+import Phase4Manager from '../services/Phase4Manager.js';
+import config from '../config/config.js';
 
 /**
- * Phase 4 Performance & Safety Demo
- * Demonstrates the enhanced arbitrage bot with performance optimization and safety features
+ * Phase 4 Performance & Safety Demo with Comprehensive Monitoring
+ * Demonstrates the enhanced arbitrage bot with performance optimization, safety features, and advanced monitoring
  */
 
 class Phase4Demo {
@@ -15,7 +15,15 @@ class Phase4Demo {
       performanceAnalysis: {},
       alerting: {},
       monitoring: {},
-      backtesting: {}
+      backtesting: {},
+      comprehensiveMonitoring: {
+        dashboard: {},
+        analytics: {},
+        events: {},
+        logs: {},
+        reports: {},
+        notifications: {}
+      }
     };
     this.startTime = Date.now();
   }
@@ -51,7 +59,22 @@ class Phase4Demo {
       // Step 7: Show System Status Dashboard
       await this.showSystemDashboard();
       
-      // Step 8: Generate Phase 4 Report
+      // Step 8: Demonstrate Comprehensive Monitoring
+      await this.demonstrateComprehensiveMonitoring();
+      
+      // Step 9: Demonstrate Analytics Engine
+      await this.demonstrateAnalyticsEngine();
+      
+      // Step 10: Demonstrate Event Tracking
+      await this.demonstrateEventTracking();
+      
+      // Step 11: Demonstrate Advanced Notifications
+      await this.demonstrateAdvancedNotifications();
+      
+      // Step 12: Generate Comprehensive Reports
+      await this.generateComprehensiveReports();
+      
+      // Step 13: Generate Phase 4 Report
       await this.generatePhase4Report();
       
     } catch (error) {
@@ -69,12 +92,23 @@ class Phase4Demo {
     
     // Configure Phase 4 with demo settings
     this.phase4Manager = new Phase4Manager({
+      // Existing components
       enableNetworkOptimization: true,
       enableRiskManagement: true,
       enableMonitoring: true,
       enableAlerting: true,
       enablePerformanceAnalysis: true,
       enableBacktesting: true,
+      
+      // New comprehensive monitoring components
+      enablePerformanceDashboard: true,
+      enableHealthMonitor: true,
+      enableAnalyticsEngine: true,
+      enableLogManager: true,
+      enableEventTracker: true,
+      enableNotificationManager: true,
+      enableReportingService: true,
+      
       autoStart: false // Manual start for demo
     });
     
@@ -604,6 +638,296 @@ class Phase4Demo {
   }
   
   /**
+   * Demonstrate comprehensive monitoring features
+   */
+  async demonstrateComprehensiveMonitoring() {
+    console.log('📊 Step 8: Comprehensive Monitoring Features');
+    console.log('-'.repeat(40));
+    
+    // Get enhanced system status
+    const enhancedStatus = this.phase4Manager.getEnhancedSystemStatus();
+    
+    console.log('🖥️  Enhanced System Status:');
+    console.log(`   Active Components: ${Object.values(enhancedStatus.componentStatus).filter(s => s === 'active').length}`);
+    console.log(`   Overall Health: ${enhancedStatus.healthStatus?.overall || 'unknown'}`);
+    
+    if (enhancedStatus.comprehensiveMonitoring) {
+      console.log('\n📈 Comprehensive Monitoring Status:');
+      
+      Object.entries(enhancedStatus.comprehensiveMonitoring).forEach(([component, status]) => {
+        const icon = status.status === 'active' ? '✅' : '❌';
+        console.log(`   ${icon} ${component}: ${status.status}`);
+        
+        // Show specific metrics for each component
+        if (component === 'performanceDashboard' && status.connections !== undefined) {
+          console.log(`      └─ WebSocket Connections: ${status.connections}`);
+        }
+        if (component === 'healthMonitor' && status.activeChecks !== undefined) {
+          console.log(`      └─ Active Health Checks: ${status.activeChecks}, Issues: ${status.issues}`);
+        }
+        if (component === 'eventTracker' && status.totalEvents !== undefined) {
+          console.log(`      └─ Total Events: ${status.totalEvents}, Patterns: ${status.patterns}`);
+        }
+        if (component === 'reportingService' && status.reports !== undefined) {
+          console.log(`      └─ Generated Reports: ${status.reports}, Templates: ${status.templates}`);
+        }
+      });
+    }
+    
+    // Get comprehensive metrics
+    const metrics = this.phase4Manager.getComprehensiveMetrics();
+    console.log(`\n📊 Metrics Collection:`);
+    console.log(`   Components with metrics: ${Object.keys(metrics.components).length}`);
+    console.log(`   Last update: ${new Date(metrics.aggregated.lastUpdate || Date.now()).toLocaleTimeString()}`);
+    
+    // Get dashboard data
+    const dashboardData = this.phase4Manager.getDashboardData();
+    console.log('\n🎛️  Dashboard Data:');
+    console.log(`   System uptime: ${Math.floor((dashboardData.system?.uptime || 0) / 60)} minutes`);
+    console.log(`   Health status: ${dashboardData.health?.overall || 'unknown'}`);
+    
+    this.demoResults.comprehensiveMonitoring.dashboard = {
+      status: 'active',
+      components: Object.keys(enhancedStatus.comprehensiveMonitoring || {}).length,
+      metrics: Object.keys(metrics.components).length
+    };
+    
+    console.log('');
+  }
+  
+  /**
+   * Demonstrate analytics engine
+   */
+  async demonstrateAnalyticsEngine() {
+    console.log('🧠 Step 9: Analytics Engine Demonstration');
+    console.log('-'.repeat(40));
+    
+    // Add some sample trade data
+    if (this.phase4Manager.components.analyticsEngine) {
+      console.log('📈 Adding sample trading data...');
+      
+      // Simulate some trade data
+      for (let i = 0; i < 5; i++) {
+        this.phase4Manager.components.analyticsEngine.addTradeData({
+          tokenPair: `TOKEN${i}/WETH`,
+          profit: Math.random() * 100 - 50, // Random profit/loss
+          executionTime: Math.random() * 30000 + 5000, // 5-35 seconds
+          gasPrice: Math.random() * 50 + 20, // 20-70 gwei
+          success: Math.random() > 0.3, // 70% success rate
+          timestamp: Date.now() - i * 60000, // 1 minute apart
+          hour: new Date().getHours(),
+          dayOfWeek: new Date().getDay()
+        });
+      }
+      
+      // Get analytics summary
+      const analytics = this.phase4Manager.components.analyticsEngine.getAnalyticsSummary();
+      
+      console.log('📊 Analytics Summary:');
+      if (analytics.profitability?.topTokenPairs?.length > 0) {
+        console.log(`   Top performing pairs: ${analytics.profitability.topTokenPairs.length}`);
+      }
+      if (analytics.risk?.sharpeRatio !== undefined) {
+        console.log(`   Sharpe Ratio: ${analytics.risk.sharpeRatio.toFixed(3)}`);
+      }
+      if (analytics.performance?.avgExecutionTime !== undefined) {
+        console.log(`   Avg Execution Time: ${(analytics.performance.avgExecutionTime / 1000).toFixed(1)}s`);
+      }
+      
+      // Get predictions if available
+      const predictions = this.phase4Manager.components.analyticsEngine.getPredictions();
+      console.log(`   Active prediction models: ${Object.keys(predictions).length}`);
+      
+      this.demoResults.comprehensiveMonitoring.analytics = {
+        modelsActive: Object.keys(predictions).length,
+        dataPoints: 5,
+        insights: analytics.insights?.recommendations?.length || 0
+      };
+    } else {
+      console.log('⚠️  Analytics Engine not available');
+    }
+    
+    console.log('');
+  }
+  
+  /**
+   * Demonstrate event tracking
+   */
+  async demonstrateEventTracking() {
+    console.log('📊 Step 10: Event Tracking Demonstration');
+    console.log('-'.repeat(40));
+    
+    console.log('🎯 Tracking sample business events...');
+    
+    // Track some sample events
+    const correlationId = `demo_${Date.now()}`;
+    
+    await this.phase4Manager.trackEvent('opportunity_detected', {
+      tokenPair: 'DEMO/WETH',
+      spread: 2.5,
+      confidence: 0.85
+    }, correlationId);
+    
+    await this.phase4Manager.trackEvent('opportunity_analyzed', {
+      tokenPair: 'DEMO/WETH',
+      executionTime: 150,
+      recommendation: 'execute'
+    }, correlationId);
+    
+    await this.phase4Manager.trackEvent('opportunity_executed', {
+      tokenPair: 'DEMO/WETH',
+      profit: 125.50,
+      gasUsed: 180000
+    }, correlationId);
+    
+    // Get event analytics
+    const eventAnalytics = this.phase4Manager.getEventAnalytics();
+    
+    console.log('📈 Event Analytics:');
+    if (eventAnalytics.summary) {
+      console.log(`   Total events: ${eventAnalytics.summary.totalEvents || 0}`);
+      console.log(`   Recent events: ${eventAnalytics.summary.recentEvents || 0}`);
+      
+      if (eventAnalytics.summary.eventsByCategory) {
+        Object.entries(eventAnalytics.summary.eventsByCategory).forEach(([category, count]) => {
+          console.log(`   ${category}: ${count} events`);
+        });
+      }
+    }
+    
+    if (eventAnalytics.funnels) {
+      console.log('\n🔄 Event Funnels:');
+      Object.entries(eventAnalytics.funnels).forEach(([funnelId, funnel]) => {
+        console.log(`   ${funnel.name}: ${funnel.overallConversion.toFixed(1)}% conversion`);
+      });
+    }
+    
+    this.demoResults.comprehensiveMonitoring.events = {
+      totalEvents: eventAnalytics.summary?.totalEvents || 3,
+      correlationId,
+      funnels: Object.keys(eventAnalytics.funnels || {}).length
+    };
+    
+    console.log('');
+  }
+  
+  /**
+   * Demonstrate advanced notifications
+   */
+  async demonstrateAdvancedNotifications() {
+    console.log('📬 Step 11: Advanced Notification System');
+    console.log('-'.repeat(40));
+    
+    console.log('📤 Sending sample notifications...');
+    
+    // Send different types of notifications
+    const notifications = [
+      {
+        type: 'trade_success',
+        data: { profit: 150.75, executionTime: 25000, txHash: '0xdemo123...' },
+        options: { priority: 'medium', recipients: ['trader'] }
+      },
+      {
+        type: 'performance_milestone',
+        data: { milestone: '1000 successful trades', achievement: 'consistency' },
+        options: { priority: 'low', recipients: ['admin'] }
+      },
+      {
+        type: 'system_error',
+        data: { error: 'Demo system alert', component: 'demo', severity: 'low' },
+        options: { priority: 'high', recipients: ['admin'] }
+      }
+    ];
+    
+    const sentNotifications = [];
+    
+    for (const notification of notifications) {
+      try {
+        const notificationId = await this.phase4Manager.sendNotification(
+          notification.type,
+          notification.data,
+          notification.options
+        );
+        sentNotifications.push(notificationId);
+        console.log(`   ✅ Sent ${notification.type}: ${notificationId}`);
+      } catch (error) {
+        console.log(`   ❌ Failed to send ${notification.type}: ${error.message}`);
+      }
+    }
+    
+    // Get notification statistics
+    if (this.phase4Manager.components.notificationManager) {
+      const stats = this.phase4Manager.components.notificationManager.getStatistics();
+      
+      console.log('\n📊 Notification Statistics:');
+      console.log(`   Total notifications: ${stats.delivery.total}`);
+      console.log(`   Success rate: ${stats.delivery.successRate?.toFixed(1) || 0}%`);
+      console.log(`   Queue size: ${stats.queue.pending}`);
+      
+      this.demoResults.comprehensiveMonitoring.notifications = {
+        sent: sentNotifications.length,
+        successRate: stats.delivery.successRate || 0,
+        queueSize: stats.queue.pending
+      };
+    }
+    
+    console.log('');
+  }
+  
+  /**
+   * Generate comprehensive reports
+   */
+  async generateComprehensiveReports() {
+    console.log('📊 Step 12: Comprehensive Report Generation');
+    console.log('-'.repeat(40));
+    
+    console.log('📋 Generating sample reports...');
+    
+    const reportTypes = ['system_health', 'daily_performance'];
+    const generatedReports = [];
+    
+    for (const reportType of reportTypes) {
+      try {
+        console.log(`   🔄 Generating ${reportType} report...`);
+        
+        const reportId = await this.phase4Manager.generateComprehensiveReport({
+          template: reportType,
+          format: 'json'
+        });
+        
+        generatedReports.push({ type: reportType, id: reportId });
+        console.log(`   ✅ Generated ${reportType}: ${reportId}`);
+        
+      } catch (error) {
+        console.log(`   ❌ Failed to generate ${reportType}: ${error.message}`);
+      }
+    }
+    
+    // Get reporting statistics
+    if (this.phase4Manager.components.reportingService) {
+      const stats = this.phase4Manager.components.reportingService.getStatistics();
+      
+      console.log('\n📈 Reporting Statistics:');
+      console.log(`   Total reports: ${stats.total}`);
+      console.log(`   Completed: ${stats.completed}`);
+      console.log(`   Failed: ${stats.failed}`);
+      console.log(`   Avg generation time: ${(stats.avgGenerationTime / 1000).toFixed(1)}s`);
+      
+      if (stats.schedules) {
+        console.log(`   Active schedules: ${stats.schedules.enabled}/${stats.schedules.total}`);
+      }
+      
+      this.demoResults.comprehensiveMonitoring.reports = {
+        generated: generatedReports.length,
+        total: stats.total,
+        avgTime: stats.avgGenerationTime
+      };
+    }
+    
+    console.log('');
+  }
+  
+  /**
    * Cleanup demo resources
    */
   async cleanup() {
@@ -630,12 +954,12 @@ async function runPhase4Demo() {
 }
 
 // Export for testing
-module.exports = {
+export {
   Phase4Demo,
   runPhase4Demo
 };
 
 // Run demo if called directly
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   runPhase4Demo().catch(console.error);
 }

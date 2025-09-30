@@ -304,23 +304,16 @@ class LogManager extends EventEmitter {
    * Hook into logger to capture logs for real-time analysis
    */
   hookLogCapture() {
-    // Create a custom transport for analysis
-    const analysisTransport = new winston.transports.Stream({
-      stream: {
-        write: (info) => {
-          try {
-            const logEntry = JSON.parse(info);
-            this.processLogEntry(logEntry);
-            this.bufferLogEntry(logEntry);
-            this.streamLogEntry(logEntry);
-          } catch (error) {
-            // Ignore parsing errors
-          }
-        }
+    // Hook into logger events instead of using a stream transport
+    this.logger.on('data', (info) => {
+      try {
+        this.processLogEntry(info);
+        this.bufferLogEntry(info);
+        this.streamLogEntry(info);
+      } catch (error) {
+        // Ignore processing errors
       }
     });
-    
-    this.logger.add(analysisTransport);
   }
   
   /**

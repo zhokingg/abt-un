@@ -5,6 +5,14 @@ import MonitoringService from './MonitoringService.js';
 import AlertingService from './AlertingService.js';
 import PerformanceAnalyzer from './PerformanceAnalyzer.js';
 import RiskManager from './RiskManager.js';
+// New comprehensive monitoring components
+import PerformanceDashboard from './PerformanceDashboard.js';
+import HealthMonitor from './HealthMonitor.js';
+import AnalyticsEngine from './AnalyticsEngine.js';
+import LogManager from './LogManager.js';
+import EventTracker from './EventTracker.js';
+import NotificationManager from './NotificationManager.js';
+import ReportingService from './ReportingService.js';
 import config from '../config/config.js';
 
 /**
@@ -16,12 +24,23 @@ class Phase4Manager extends EventEmitter {
     super();
     
     this.options = {
+      // Existing components
       enableNetworkOptimization: options.enableNetworkOptimization !== false,
       enableBacktesting: options.enableBacktesting !== false,
       enableMonitoring: options.enableMonitoring !== false,
       enableAlerting: options.enableAlerting !== false,
       enablePerformanceAnalysis: options.enablePerformanceAnalysis !== false,
       enableRiskManagement: options.enableRiskManagement !== false,
+      
+      // New comprehensive monitoring components
+      enablePerformanceDashboard: options.enablePerformanceDashboard !== false,
+      enableHealthMonitor: options.enableHealthMonitor !== false,
+      enableAnalyticsEngine: options.enableAnalyticsEngine !== false,
+      enableLogManager: options.enableLogManager !== false,
+      enableEventTracker: options.enableEventTracker !== false,
+      enableNotificationManager: options.enableNotificationManager !== false,
+      enableReportingService: options.enableReportingService !== false,
+      
       autoStart: options.autoStart !== false,
       ...options
     };
@@ -30,22 +49,42 @@ class Phase4Manager extends EventEmitter {
     
     // Component instances
     this.components = {
+      // Existing components
       networkOptimizer: null,
       backtestingEngine: null,
       monitoringService: null,
       alertingService: null,
       performanceAnalyzer: null,
-      riskManager: null
+      riskManager: null,
+      
+      // New comprehensive monitoring components
+      performanceDashboard: null,
+      healthMonitor: null,
+      analyticsEngine: null,
+      logManager: null,
+      eventTracker: null,
+      notificationManager: null,
+      reportingService: null
     };
     
     // Component status
     this.componentStatus = {
+      // Existing components
       networkOptimizer: 'inactive',
       backtestingEngine: 'inactive',
       monitoringService: 'inactive',
       alertingService: 'inactive',
       performanceAnalyzer: 'inactive',
-      riskManager: 'inactive'
+      riskManager: 'inactive',
+      
+      // New comprehensive monitoring components
+      performanceDashboard: 'inactive',
+      healthMonitor: 'inactive',
+      analyticsEngine: 'inactive',
+      logManager: 'inactive',
+      eventTracker: 'inactive',
+      notificationManager: 'inactive',
+      reportingService: 'inactive'
     };
     
     // Overall status
@@ -174,6 +213,129 @@ class Phase4Manager extends EventEmitter {
         this.setupBacktestingEvents();
       }
       
+      // Initialize new comprehensive monitoring components
+      
+      // Initialize Log Manager (first as other components depend on it)
+      if (this.options.enableLogManager) {
+        console.log('📝 Initializing Log Manager...');
+        this.components.logManager = new LogManager({
+          logLevel: this.phase4Config.LOG_LEVEL || 'info',
+          enableAnalysis: true,
+          ...this.phase4Config.LOG_MANAGER
+        });
+        
+        await this.components.logManager.initialize();
+        this.componentStatus.logManager = 'active';
+        initResults.logManager = 'success';
+        
+        this.setupLogManagerEvents();
+      }
+      
+      // Initialize Event Tracker
+      if (this.options.enableEventTracker) {
+        console.log('📊 Initializing Event Tracker...');
+        this.components.eventTracker = new EventTracker({
+          enableAnalysis: true,
+          ...this.phase4Config.EVENT_TRACKER
+        });
+        
+        await this.components.eventTracker.initialize();
+        this.componentStatus.eventTracker = 'active';
+        initResults.eventTracker = 'success';
+        
+        this.setupEventTrackerEvents();
+      }
+      
+      // Initialize Health Monitor
+      if (this.options.enableHealthMonitor) {
+        console.log('🏥 Initializing Health Monitor...');
+        this.components.healthMonitor = new HealthMonitor({
+          arbitrageEngine: this.options.arbitrageEngine,
+          priceMonitor: this.options.priceMonitor,
+          mempoolMonitor: this.options.mempoolMonitor,
+          rpcProviders: this.options.rpcProviders || {},
+          ...this.phase4Config.HEALTH_MONITOR
+        });
+        
+        await this.components.healthMonitor.initialize();
+        this.componentStatus.healthMonitor = 'active';
+        initResults.healthMonitor = 'success';
+        
+        this.setupHealthMonitorEvents();
+      }
+      
+      // Initialize Analytics Engine
+      if (this.options.enableAnalyticsEngine) {
+        console.log('🧠 Initializing Analytics Engine...');
+        this.components.analyticsEngine = new AnalyticsEngine({
+          enableAnalysis: true,
+          ...this.phase4Config.ANALYTICS_ENGINE
+        });
+        
+        await this.components.analyticsEngine.initialize();
+        this.componentStatus.analyticsEngine = 'active';
+        initResults.analyticsEngine = 'success';
+        
+        this.setupAnalyticsEngineEvents();
+      }
+      
+      // Initialize Notification Manager
+      if (this.options.enableNotificationManager) {
+        console.log('📬 Initializing Notification Manager...');
+        this.components.notificationManager = new NotificationManager({
+          alertingService: this.components.alertingService,
+          logManager: this.components.logManager,
+          enableScheduling: true,
+          enableDigests: true,
+          ...this.phase4Config.NOTIFICATION_MANAGER
+        });
+        
+        await this.components.notificationManager.initialize();
+        this.componentStatus.notificationManager = 'active';
+        initResults.notificationManager = 'success';
+        
+        this.setupNotificationManagerEvents();
+      }
+      
+      // Initialize Performance Dashboard
+      if (this.options.enablePerformanceDashboard) {
+        console.log('📈 Initializing Performance Dashboard...');
+        this.components.performanceDashboard = new PerformanceDashboard({
+          enableWebSocket: true,
+          webSocketPort: this.phase4Config.DASHBOARD_PORT || 8080,
+          ...this.phase4Config.PERFORMANCE_DASHBOARD
+        });
+        
+        await this.components.performanceDashboard.initialize();
+        this.componentStatus.performanceDashboard = 'active';
+        initResults.performanceDashboard = 'success';
+        
+        this.setupPerformanceDashboardEvents();
+      }
+      
+      // Initialize Reporting Service
+      if (this.options.enableReportingService) {
+        console.log('📊 Initializing Reporting Service...');
+        this.components.reportingService = new ReportingService({
+          performanceAnalyzer: this.components.performanceAnalyzer,
+          analyticsEngine: this.components.analyticsEngine,
+          healthMonitor: this.components.healthMonitor,
+          riskManager: this.components.riskManager,
+          eventTracker: this.components.eventTracker,
+          logManager: this.components.logManager,
+          notificationManager: this.components.notificationManager,
+          enableAutomation: true,
+          enableDelivery: true,
+          ...this.phase4Config.REPORTING_SERVICE
+        });
+        
+        await this.components.reportingService.initialize();
+        this.componentStatus.reportingService = 'active';
+        initResults.reportingService = 'success';
+        
+        this.setupReportingServiceEvents();
+      }
+      
       // Setup cross-component integrations
       this.setupCrossComponentIntegrations();
       
@@ -183,10 +345,11 @@ class Phase4Manager extends EventEmitter {
       this.isInitialized = true;
       
       const activeComponents = Object.values(this.componentStatus).filter(status => status === 'active').length;
+      const totalComponents = Object.keys(this.componentStatus).length;
       
       console.log('✅ Phase 4 initialization complete');
-      console.log(`📊 Active components: ${activeComponents}/6`);
-      console.log('🎯 Enhanced features: Multi-RPC failover, Risk management, Performance monitoring, Alerting');
+      console.log(`📊 Active components: ${activeComponents}/${totalComponents}`);
+      console.log('🎯 Enhanced features: Multi-RPC failover, Risk management, Performance monitoring, Advanced analytics, Real-time dashboard, Comprehensive alerting, Automated reporting');
       
       this.emit('initialized', {
         activeComponents,
@@ -420,6 +583,203 @@ class Phase4Manager extends EventEmitter {
   }
   
   /**
+   * Setup Log Manager events
+   */
+  setupLogManagerEvents() {
+    const logManager = this.components.logManager;
+    
+    logManager.on('patternDetected', (pattern) => {
+      this.sendAlert('system', {
+        message: `Log pattern detected: ${pattern.pattern}`,
+        count: pattern.count,
+        type: pattern.type
+      }, { priority: 'medium' });
+    });
+    
+    logManager.on('anomalyDetected', (anomaly) => {
+      this.sendAlert('system', {
+        message: `Log anomaly detected: ${anomaly.type}`,
+        description: anomaly.description,
+        severity: anomaly.severity
+      }, { priority: 'high' });
+    });
+    
+    logManager.on('analysisComplete', (analysis) => {
+      this.logEvent('logManager', 'analysisComplete', {
+        patterns: analysis.patterns?.totalPatterns,
+        anomalies: analysis.anomalies?.length
+      });
+    });
+  }
+  
+  /**
+   * Setup Event Tracker events
+   */
+  setupEventTrackerEvents() {
+    const eventTracker = this.components.eventTracker;
+    
+    eventTracker.on('patternDetected', (pattern) => {
+      this.logEvent('eventTracker', 'patternDetected', {
+        pattern: pattern.pattern,
+        count: pattern.count
+      });
+    });
+    
+    eventTracker.on('anomaliesDetected', (anomalies) => {
+      anomalies.forEach(anomaly => {
+        this.sendAlert('system', {
+          message: `Event anomaly: ${anomaly.type}`,
+          eventType: anomaly.eventType,
+          severity: anomaly.severity
+        }, { priority: anomaly.severity === 'critical' ? 'critical' : 'medium' });
+      });
+    });
+    
+    eventTracker.on('analysisComplete', (analysis) => {
+      this.logEvent('eventTracker', 'analysisComplete', {
+        totalEvents: analysis.summary?.totalEvents,
+        patterns: analysis.patterns?.totalPatterns
+      });
+    });
+  }
+  
+  /**
+   * Setup Health Monitor events
+   */
+  setupHealthMonitorEvents() {
+    const healthMonitor = this.components.healthMonitor;
+    
+    healthMonitor.on('healthChanged', (change) => {
+      this.sendAlert('system', {
+        message: `System health changed from ${change.previous} to ${change.current}`,
+        previous: change.previous,
+        current: change.current,
+        issues: change.issues?.length || 0
+      }, { 
+        priority: change.current === 'critical' ? 'critical' : 
+                 change.current === 'unhealthy' ? 'high' : 'low' 
+      });
+    });
+    
+    healthMonitor.on('healthCheck', (result) => {
+      if (result.criticalFailures > 0) {
+        this.sendAlert('system', {
+          message: `Health check failed: ${result.criticalFailures} critical issues`,
+          passed: result.passed,
+          total: result.total,
+          issues: result.issues
+        }, { priority: 'critical' });
+      }
+    });
+  }
+  
+  /**
+   * Setup Analytics Engine events
+   */
+  setupAnalyticsEngineEvents() {
+    const analyticsEngine = this.components.analyticsEngine;
+    
+    analyticsEngine.on('anomaliesDetected', (anomalies) => {
+      anomalies.forEach(anomaly => {
+        if (anomaly.severity === 'critical') {
+          this.sendAlert('analytics', {
+            message: `Critical anomaly in ${anomaly.metric}`,
+            metric: anomaly.metric,
+            value: anomaly.value,
+            expected: anomaly.expected,
+            zScore: anomaly.zScore
+          }, { priority: 'critical' });
+        }
+      });
+    });
+    
+    analyticsEngine.on('analysisComplete', (analysis) => {
+      this.logEvent('analyticsEngine', 'analysisComplete', {
+        insights: analysis.insights?.recommendations?.length,
+        predictions: Object.keys(analysis.predictions || {}).length
+      });
+    });
+  }
+  
+  /**
+   * Setup Notification Manager events
+   */
+  setupNotificationManagerEvents() {
+    const notificationManager = this.components.notificationManager;
+    
+    notificationManager.on('notificationFailed', (notification) => {
+      this.logEvent('notificationManager', 'deliveryFailed', {
+        notificationId: notification.id,
+        type: notification.type,
+        attempts: notification.attempts
+      });
+    });
+    
+    notificationManager.on('notificationEscalated', (escalation) => {
+      this.logEvent('notificationManager', 'escalated', {
+        originalId: escalation.original.id,
+        escalationId: escalation.escalation.id
+      });
+    });
+  }
+  
+  /**
+   * Setup Performance Dashboard events
+   */
+  setupPerformanceDashboardEvents() {
+    const dashboard = this.components.performanceDashboard;
+    
+    dashboard.on('metricsUpdated', (metrics) => {
+      // Update aggregated metrics for other components
+      this.aggregatedMetrics.system = {
+        ...this.aggregatedMetrics.system,
+        cpu: metrics.system?.cpu,
+        memory: metrics.system?.memory,
+        uptime: metrics.system?.uptime
+      };
+      
+      this.aggregatedMetrics.trading = {
+        ...this.aggregatedMetrics.trading,
+        totalTrades: metrics.trades?.total,
+        successRate: metrics.trades?.successRate,
+        totalProfit: metrics.pnl?.totalProfit
+      };
+      
+      this.aggregatedMetrics.lastUpdate = Date.now();
+    });
+  }
+  
+  /**
+   * Setup Reporting Service events
+   */
+  setupReportingServiceEvents() {
+    const reportingService = this.components.reportingService;
+    
+    reportingService.on('reportGenerated', (metadata) => {
+      this.logEvent('reportingService', 'reportGenerated', {
+        reportId: metadata.id,
+        template: metadata.templateId,
+        generationTime: metadata.generationTime
+      });
+    });
+    
+    reportingService.on('reportGenerationFailed', (metadata) => {
+      this.sendAlert('system', {
+        message: `Report generation failed: ${metadata.templateId}`,
+        error: metadata.error,
+        reportId: metadata.id
+      }, { priority: 'medium' });
+    });
+    
+    reportingService.on('scheduledReportGenerated', (event) => {
+      this.logEvent('reportingService', 'scheduledReportGenerated', {
+        templateId: event.templateId,
+        reportId: event.reportId
+      });
+    });
+  }
+  
+  /**
    * Setup cross-component integrations
    */
   setupCrossComponentIntegrations() {
@@ -449,6 +809,120 @@ class Phase4Manager extends EventEmitter {
           value: alert.value,
           threshold: alert.threshold
         }, { priority: alert.type });
+      });
+    }
+    
+    // Integrate new monitoring components
+    
+    // Connect Performance Dashboard with other components
+    if (this.components.performanceDashboard) {
+      // Feed trade data from performance analyzer
+      if (this.components.performanceAnalyzer) {
+        this.components.performanceAnalyzer.on('opportunityRecorded', (data) => {
+          this.components.performanceDashboard.updateTradeMetrics(data);
+        });
+      }
+      
+      // Feed system metrics from health monitor
+      if (this.components.healthMonitor) {
+        this.components.healthMonitor.on('healthCheck', (data) => {
+          this.components.performanceDashboard.updateSystemMetrics({
+            status: data.overall,
+            uptime: data.uptime,
+            issues: data.issues?.length || 0
+          });
+        });
+      }
+      
+      // Feed risk metrics from risk manager
+      if (this.components.riskManager) {
+        this.components.riskManager.on('riskUpdated', (data) => {
+          this.components.performanceDashboard.updateRiskMetrics(data);
+        });
+      }
+    }
+    
+    // Connect Analytics Engine with data sources
+    if (this.components.analyticsEngine) {
+      // Feed trade data
+      if (this.components.performanceAnalyzer) {
+        this.components.performanceAnalyzer.on('opportunityRecorded', (data) => {
+          this.components.analyticsEngine.addTradeData(data);
+        });
+      }
+      
+      // Feed system performance data
+      if (this.components.healthMonitor) {
+        this.components.healthMonitor.on('healthCheck', (data) => {
+          this.components.analyticsEngine.addSystemData({
+            timestamp: Date.now(),
+            uptime: data.uptime,
+            healthStatus: data.overall,
+            issues: data.issues?.length || 0
+          });
+        });
+      }
+      
+      // Feed risk data
+      if (this.components.riskManager) {
+        this.components.riskManager.on('riskUpdated', (data) => {
+          this.components.analyticsEngine.addRiskData({
+            timestamp: Date.now(),
+            ...data
+          });
+        });
+      }
+    }
+    
+    // Connect Event Tracker with business events
+    if (this.components.eventTracker) {
+      // Track arbitrage lifecycle events
+      if (this.components.performanceAnalyzer) {
+        this.components.performanceAnalyzer.on('opportunityDetected', (data) => {
+          this.components.eventTracker.trackEvent('opportunity_detected', data);
+        });
+        
+        this.components.performanceAnalyzer.on('opportunityExecuted', (data) => {
+          this.components.eventTracker.trackEvent('opportunity_executed', data);
+        });
+      }
+      
+      // Track system events
+      if (this.components.healthMonitor) {
+        this.components.healthMonitor.on('healthChanged', (data) => {
+          if (data.current === 'critical') {
+            this.components.eventTracker.trackEvent('system_critical', data);
+          }
+        });
+      }
+      
+      // Track risk events
+      if (this.components.riskManager) {
+        this.components.riskManager.on('thresholdExceeded', (data) => {
+          this.components.eventTracker.trackEvent('risk_threshold_exceeded', data);
+        });
+        
+        this.components.riskManager.on('emergencyStop', (data) => {
+          this.components.eventTracker.trackEvent('emergency_stop', data);
+        });
+      }
+    }
+    
+    // Connect Notification Manager with alerting
+    if (this.components.notificationManager && this.components.alertingService) {
+      // Override alerting service with notification manager for enhanced features
+      this.components.alertingService.notificationManager = this.components.notificationManager;
+    }
+    
+    // Connect Log Manager with all components
+    if (this.components.logManager) {
+      // Provide logger to other components
+      const logger = this.components.logManager.getLogger();
+      
+      Object.values(this.components).forEach(component => {
+        if (component && typeof component.setLogger === 'function') {
+          component.setLogger(logger);
+        }
       });
     }
   }
@@ -716,6 +1190,252 @@ class Phase4Manager extends EventEmitter {
   }
   
   /**
+   * Get comprehensive dashboard data
+   */
+  getDashboardData() {
+    const data = {
+      system: this.getSystemStatus(),
+      performance: this.getPerformanceReport(),
+      timestamp: Date.now()
+    };
+    
+    // Add dashboard-specific data if available
+    if (this.components.performanceDashboard) {
+      data.dashboard = this.components.performanceDashboard.getDashboardState();
+    }
+    
+    // Add health data if available
+    if (this.components.healthMonitor) {
+      data.health = this.components.healthMonitor.getHealthStatus();
+    }
+    
+    // Add analytics data if available
+    if (this.components.analyticsEngine) {
+      data.analytics = this.components.analyticsEngine.getAnalyticsSummary();
+    }
+    
+    return data;
+  }
+  
+  /**
+   * Get comprehensive system metrics
+   */
+  getComprehensiveMetrics() {
+    const metrics = {
+      timestamp: Date.now(),
+      components: {},
+      aggregated: this.aggregatedMetrics
+    };
+    
+    // Collect metrics from all components
+    Object.entries(this.components).forEach(([name, component]) => {
+      if (component && this.componentStatus[name] === 'active') {
+        try {
+          if (typeof component.getMetrics === 'function') {
+            metrics.components[name] = component.getMetrics();
+          } else if (typeof component.getSnapshot === 'function') {
+            metrics.components[name] = component.getSnapshot();
+          } else if (typeof component.getStatistics === 'function') {
+            metrics.components[name] = component.getStatistics();
+          }
+        } catch (error) {
+          metrics.components[name] = { error: error.message };
+        }
+      }
+    });
+    
+    return metrics;
+  }
+  
+  /**
+   * Get monitoring insights and recommendations
+   */
+  getMonitoringInsights() {
+    const insights = {
+      timestamp: Date.now(),
+      recommendations: [],
+      warnings: [],
+      alerts: [],
+      performance: {}
+    };
+    
+    // Get analytics insights
+    if (this.components.analyticsEngine) {
+      try {
+        const analytics = this.components.analyticsEngine.getAnalyticsSummary();
+        if (analytics.insights) {
+          insights.recommendations.push(...(analytics.insights.recommendations || []));
+          insights.warnings.push(...(analytics.insights.warnings || []));
+        }
+      } catch (error) {
+        console.error('Failed to get analytics insights:', error.message);
+      }
+    }
+    
+    // Get health insights
+    if (this.components.healthMonitor) {
+      try {
+        const health = this.components.healthMonitor.getHealthStatus();
+        if (health.issues && health.issues.length > 0) {
+          insights.warnings.push(...health.issues.map(issue => ({
+            type: 'health',
+            title: `${issue.name} Issue`,
+            message: issue.message,
+            critical: issue.critical
+          })));
+        }
+      } catch (error) {
+        console.error('Failed to get health insights:', error.message);
+      }
+    }
+    
+    return insights;
+  }
+  
+  /**
+   * Generate comprehensive report
+   */
+  async generateComprehensiveReport(options = {}) {
+    if (!this.components.reportingService) {
+      throw new Error('Reporting service not available');
+    }
+    
+    const templateId = options.template || 'daily_performance';
+    
+    try {
+      const reportId = await this.components.reportingService.generateReport(templateId, {
+        format: options.format || 'json',
+        timeRange: options.timeRange,
+        ...options
+      });
+      
+      this.logEvent('phase4Manager', 'reportGenerated', {
+        reportId,
+        template: templateId,
+        format: options.format || 'json'
+      });
+      
+      return reportId;
+      
+    } catch (error) {
+      this.logEvent('phase4Manager', 'reportGenerationFailed', {
+        template: templateId,
+        error: error.message
+      });
+      throw error;
+    }
+  }
+  
+  /**
+   * Send notification through notification manager
+   */
+  async sendNotification(type, data, options = {}) {
+    if (!this.components.notificationManager) {
+      // Fallback to regular alert
+      return this.sendAlert(type, data, options);
+    }
+    
+    try {
+      const notificationId = await this.components.notificationManager.sendNotification(type, data, options);
+      
+      this.logEvent('phase4Manager', 'notificationSent', {
+        notificationId,
+        type,
+        priority: options.priority || 'medium'
+      });
+      
+      return notificationId;
+      
+    } catch (error) {
+      console.error('Failed to send notification:', error.message);
+      // Fallback to regular alert
+      return this.sendAlert(type, data, options);
+    }
+  }
+  
+  /**
+   * Track business event
+   */
+  async trackEvent(eventType, data = {}, correlationId = null) {
+    if (!this.components.eventTracker) {
+      this.logEvent('phase4Manager', eventType, data);
+      return null;
+    }
+    
+    try {
+      const eventId = await this.components.eventTracker.trackEvent(eventType, data, correlationId);
+      return eventId;
+    } catch (error) {
+      console.error('Failed to track event:', error.message);
+      this.logEvent('phase4Manager', eventType, data);
+      return null;
+    }
+  }
+  
+  /**
+   * Get comprehensive status including all new components
+   */
+  getEnhancedSystemStatus() {
+    const baseStatus = this.getSystemStatus();
+    
+    const enhancedStatus = {
+      ...baseStatus,
+      comprehensiveMonitoring: {
+        performanceDashboard: {
+          status: this.componentStatus.performanceDashboard,
+          connections: this.components.performanceDashboard?.wsConnections?.size || 0,
+          metricsCount: this.components.performanceDashboard ? 
+            Object.keys(this.components.performanceDashboard.metrics || {}).length : 0
+        },
+        healthMonitor: {
+          status: this.componentStatus.healthMonitor,
+          overallHealth: this.components.healthMonitor?.healthState?.overall || 'unknown',
+          activeChecks: this.components.healthMonitor ? 
+            Object.keys(this.components.healthMonitor.healthChecks || {}).length : 0,
+          issues: this.components.healthMonitor?.healthState?.issues?.length || 0
+        },
+        analyticsEngine: {
+          status: this.componentStatus.analyticsEngine,
+          dataPoints: this.components.analyticsEngine ? 
+            Object.values(this.components.analyticsEngine.data || {}).reduce((sum, arr) => 
+              sum + (Array.isArray(arr) ? arr.length : 0), 0) : 0,
+          predictions: this.components.analyticsEngine ? 
+            Object.keys(this.components.analyticsEngine.models || {}).filter(
+              key => this.components.analyticsEngine.models[key].enabled
+            ).length : 0
+        },
+        eventTracker: {
+          status: this.componentStatus.eventTracker,
+          totalEvents: this.components.eventTracker?.events?.size || 0,
+          patterns: this.components.eventTracker?.analytics?.patterns?.size || 0,
+          correlations: this.components.eventTracker?.eventsByCorrelation?.size || 0
+        },
+        logManager: {
+          status: this.componentStatus.logManager,
+          logBuffer: this.components.logManager?.logBuffer?.length || 0,
+          patterns: this.components.logManager?.logAnalysis?.patterns?.size || 0,
+          streams: this.components.logManager?.logStreams?.size || 0
+        },
+        notificationManager: {
+          status: this.componentStatus.notificationManager,
+          queueSize: this.components.notificationManager?.notificationQueue?.length || 0,
+          sent: this.components.notificationManager?.sentNotifications?.size || 0,
+          failed: this.components.notificationManager?.failedNotifications?.size || 0
+        },
+        reportingService: {
+          status: this.componentStatus.reportingService,
+          reports: this.components.reportingService?.generatedReports?.size || 0,
+          schedules: this.components.reportingService?.schedules?.size || 0,
+          templates: this.components.reportingService ? 
+            Object.keys(this.components.reportingService.reportTemplates || {}).length : 0
+        }
+      }
+    };
+    
+    return enhancedStatus;
+  }
+  
+  /**
    * Shutdown all Phase 4 components gracefully
    */
   async shutdown() {
@@ -732,11 +1452,18 @@ class Phase4Manager extends EventEmitter {
       // Shutdown components in reverse order of importance
       const shutdownOrder = [
         'backtestingEngine',
+        'reportingService',
+        'performanceDashboard', 
+        'notificationManager',
+        'analyticsEngine',
+        'eventTracker',
+        'healthMonitor',
         'performanceAnalyzer', 
         'alertingService',
         'riskManager',
         'networkOptimizer',
-        'monitoringService' // Last, so it can log other shutdowns
+        'monitoringService',
+        'logManager' // Last, so it can log other shutdowns
       ];
       
       for (const componentName of shutdownOrder) {

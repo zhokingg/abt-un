@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import WebSocket from 'ws';
+import WebSocket, { WebSocketServer } from 'ws';
 
 /**
  * PerformanceDashboard - Real-time performance tracking and visualization
@@ -158,7 +158,7 @@ class PerformanceDashboard extends EventEmitter {
   async setupWebSocketServer() {
     return new Promise((resolve, reject) => {
       try {
-        this.wsServer = new WebSocket.Server({ 
+        this.wsServer = new WebSocketServer({ 
           port: this.options.webSocketPort,
           maxPayload: 1024 * 1024 // 1MB max payload
         });
