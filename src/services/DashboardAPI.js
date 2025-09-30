@@ -508,6 +508,30 @@ class DashboardAPI extends EventEmitter {
   }
   
   /**
+   * Get network metrics
+   */
+  async getNetworkMetrics(req, res) {
+    try {
+      const data = await this.getNetworkMetricsData();
+      res.json(data);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to get network metrics', details: error.message });
+    }
+  }
+  
+  /**
+   * Get performance metrics
+   */
+  async getPerformanceMetrics(req, res) {
+    try {
+      const data = await this.getPerformanceMetricsData();
+      res.json(data);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to get performance metrics', details: error.message });
+    }
+  }
+  
+  /**
    * Get chart data
    */
   async getChartData(req, res) {

@@ -976,6 +976,458 @@ class PerformanceAnalyzer extends EventEmitter {
   }
   
   /**
+   * Generate recommendations based on performance analysis
+   */
+  generateRecommendations(issues) {
+    const recommendations = [];
+    
+    // CPU-related recommendations
+    const cpuIssues = issues.filter(issue => issue.type.includes('cpu'));
+    if (cpuIssues.length > 0) {
+      recommendations.push({
+        type: 'resource_optimization',
+        priority: 'high',
+        issue: 'High CPU usage detected',
+        suggestion: 'Consider optimizing CPU-intensive operations or scaling horizontally',
+        impact: 'Improve system stability and response times',
+        estimatedImprovement: '20-30%'
+      });
+    }
+    
+    // Memory-related recommendations
+    const memoryIssues = issues.filter(issue => issue.type.includes('memory'));
+    if (memoryIssues.length > 0) {
+      recommendations.push({
+        type: 'memory_optimization',
+        priority: 'medium',
+        issue: 'High memory usage or potential memory leaks',
+        suggestion: 'Implement memory optimization techniques and regular garbage collection',
+        impact: 'Prevent out-of-memory errors and improve performance',
+        estimatedImprovement: '15-25%'
+      });
+    }
+    
+    // Network-related recommendations
+    const networkIssues = issues.filter(issue => issue.type.includes('network') || issue.type.includes('rpc'));
+    if (networkIssues.length > 0) {
+      recommendations.push({
+        type: 'network_optimization',
+        priority: 'high',
+        issue: 'Network latency or RPC performance issues',
+        suggestion: 'Optimize RPC provider selection and implement connection pooling',
+        impact: 'Reduce transaction latency and improve execution speed',
+        estimatedImprovement: '30-50%'
+      });
+    }
+    
+    // Trading performance recommendations
+    const tradingIssues = issues.filter(issue => issue.type.includes('arbitrage') || issue.type.includes('execution'));
+    if (tradingIssues.length > 0) {
+      recommendations.push({
+        type: 'trading_optimization',
+        priority: 'critical',
+        issue: 'Trading execution performance degradation',
+        suggestion: 'Review arbitrage detection algorithms and execution strategies',
+        impact: 'Increase profitability and reduce missed opportunities',
+        estimatedImprovement: '10-40%'
+      });
+    }
+    
+    return recommendations;
+  }
+  
+  /**
+   * Detect performance bottlenecks
+   */
+  detectBottlenecks() {
+    const bottlenecks = [];
+    const currentTime = Date.now();
+    
+    // Check RPC latency bottlenecks
+    if (this.metrics.network.rpc.avgLatency > this.options.performanceTargets.rpcLatency * 2) {
+      bottlenecks.push({
+        id: `bottleneck_${currentTime}_rpc`,
+        type: 'rpc_latency',
+        severity: 'high',
+        description: 'RPC latency exceeds acceptable thresholds',
+        metric: this.metrics.network.rpc.avgLatency,
+        threshold: this.options.performanceTargets.rpcLatency,
+        impact: 'Slower arbitrage detection and execution',
+        suggestions: ['Switch RPC providers', 'Implement connection pooling', 'Use multiple providers'],
+        detectedAt: currentTime
+      });
+    }
+    
+    // Check execution time bottlenecks
+    const recentExecutions = this.metrics.arbitrage.performance.executionLatency.slice(-10);
+    if (recentExecutions.length > 0) {
+      const avgExecutionTime = recentExecutions.reduce((sum, exec) => sum + exec.value, 0) / recentExecutions.length;
+      
+      if (avgExecutionTime > this.options.performanceTargets.executionTime * 1.5) {
+        bottlenecks.push({
+          id: `bottleneck_${currentTime}_execution`,
+          type: 'execution_time',
+          severity: 'critical',
+          description: 'Trade execution time is significantly higher than target',
+          metric: avgExecutionTime,
+          threshold: this.options.performanceTargets.executionTime,
+          impact: 'Missed arbitrage opportunities and reduced profitability',
+          suggestions: ['Optimize gas price strategy', 'Improve transaction building', 'Use MEV protection'],
+          detectedAt: currentTime
+        });
+      }
+    }
+    
+    // Check memory usage bottlenecks
+    const memoryUsage = this.getCurrentMemoryUsage();
+    if (memoryUsage > this.options.performanceTargets.memoryUsage * 1.2) {
+      bottlenecks.push({
+        id: `bottleneck_${currentTime}_memory`,
+        type: 'memory_usage',
+        severity: 'medium',
+        description: 'Memory usage is approaching dangerous levels',
+        metric: memoryUsage,
+        threshold: this.options.performanceTargets.memoryUsage,
+        impact: 'Potential system instability and crashes',
+        suggestions: ['Implement memory optimization', 'Clear caches regularly', 'Check for memory leaks'],
+        detectedAt: currentTime
+      });
+    }
+    
+    // Update bottlenecks
+    this.bottlenecks.current = bottlenecks;
+    
+    // Emit bottleneck detection events
+    bottlenecks.forEach(bottleneck => {
+      this.emit('bottleneckDetected', bottleneck);
+    });
+    
+    return bottlenecks;
+  }
+  
+  /**
+   * Analyze memory usage trend
+   */
+  analyzeMemoryTrend() {
+    const memoryHistory = this.metrics.system.memory.usage.slice(-20); // Last 20 measurements
+    
+    if (memoryHistory.length < 5) {
+      return {
+        trend: 'insufficient_data',
+        risk: 'unknown',
+        recommendation: 'Continue monitoring'
+      };
+    }
+    
+    // Calculate trend
+    const trend = this.calculateTrend(memoryHistory);
+    
+    // Assess risk
+    let risk = 'low';
+    const currentUsage = memoryHistory[memoryHistory.length - 1]?.value || 0;
+    
+    if (currentUsage > 90) {
+      risk = 'critical';
+    } else if (currentUsage > 80) {
+      risk = 'high';
+    } else if (trend.direction === 'increasing' && trend.magnitude > 0.1) {
+      risk = 'medium';
+    }
+    
+    // Generate recommendation
+    let recommendation = 'Continue monitoring';
+    
+    if (risk === 'critical') {
+      recommendation = 'Immediate memory cleanup required - restart services if necessary';
+    } else if (risk === 'high') {
+      recommendation = 'Optimize memory usage and clear caches';
+    } else if (trend.direction === 'increasing') {
+      recommendation = 'Monitor for potential memory leaks';
+    }
+    
+    return {
+      trend: trend.direction,
+      magnitude: trend.magnitude,
+      risk,
+      currentUsage,
+      recommendation,
+      history: memoryHistory
+    };
+  }
+  
+  /**
+   * Generate performance insights
+   */
+  generateInsights() {
+    const insights = {
+      optimizations: [],
+      warnings: [],
+      recommendations: []
+    };
+    
+    // Analyze RPC performance
+    const rpcMetrics = this.metrics.network.rpc;
+    if (rpcMetrics.avgLatency > this.options.performanceTargets.rpcLatency) {
+      insights.warnings.push({
+        type: 'rpc_performance',
+        message: `RPC latency (${rpcMetrics.avgLatency}ms) exceeds target (${this.options.performanceTargets.rpcLatency}ms)`,
+        severity: 'medium',
+        timestamp: Date.now()
+      });
+      
+      insights.optimizations.push({
+        area: 'network',
+        suggestion: 'Consider switching to faster RPC providers or implementing connection pooling',
+        expectedImprovement: '20-40% latency reduction',
+        priority: 'high'
+      });
+    }
+    
+    // Analyze arbitrage performance
+    const arbitrageMetrics = this.metrics.arbitrage.opportunities;
+    const successRate = arbitrageMetrics.successRate;
+    
+    if (successRate < this.options.performanceTargets.successRate) {
+      insights.warnings.push({
+        type: 'arbitrage_performance',
+        message: `Success rate (${successRate}%) is below target (${this.options.performanceTargets.successRate}%)`,
+        severity: 'high',
+        timestamp: Date.now()
+      });
+      
+      insights.recommendations.push({
+        area: 'trading',
+        suggestion: 'Review arbitrage strategies and execution logic',
+        expectedImprovement: `Potential to increase success rate to ${this.options.performanceTargets.successRate}%+`,
+        priority: 'critical'
+      });
+    }
+    
+    // Analyze system resource usage
+    const memoryTrend = this.analyzeMemoryTrend();
+    if (memoryTrend.risk !== 'low') {
+      insights.warnings.push({
+        type: 'memory_usage',
+        message: `Memory usage trend: ${memoryTrend.trend} (${memoryTrend.risk} risk)`,
+        severity: memoryTrend.risk === 'critical' ? 'critical' : 'medium',
+        timestamp: Date.now()
+      });
+      
+      insights.optimizations.push({
+        area: 'system',
+        suggestion: memoryTrend.recommendation,
+        expectedImprovement: 'Improved system stability',
+        priority: memoryTrend.risk === 'critical' ? 'critical' : 'medium'
+      });
+    }
+    
+    // Update insights
+    this.insights = insights;
+    
+    return insights;
+  }
+  
+  /**
+   * Calculate hourly profit rate
+   */
+  calculateHourlyProfit() {
+    const hourlyProfits = this.metrics.business.profitability.hourlyProfit;
+    
+    if (hourlyProfits.length === 0) {
+      return {
+        current: 0,
+        average: 0,
+        trend: 'no_data',
+        last24h: 0
+      };
+    }
+    
+    // Get last 24 hours of data
+    const now = Date.now();
+    const last24h = hourlyProfits.filter(profit => 
+      now - profit.timestamp < 24 * 60 * 60 * 1000
+    );
+    
+    const current = hourlyProfits[hourlyProfits.length - 1]?.value || 0;
+    const average = last24h.length > 0 ? 
+      last24h.reduce((sum, profit) => sum + profit.value, 0) / last24h.length : 0;
+    const total24h = last24h.reduce((sum, profit) => sum + profit.value, 0);
+    
+    // Calculate trend
+    const trend = this.calculateTrend(last24h.slice(-6)); // Last 6 hours
+    
+    return {
+      current,
+      average,
+      trend: trend.direction,
+      last24h: total24h,
+      samples: last24h.length
+    };
+  }
+  
+  /**
+   * Calculate execution efficiency
+   */
+  calculateExecutionEfficiency() {
+    const opportunities = this.metrics.arbitrage.opportunities;
+    const performance = this.metrics.arbitrage.performance;
+    
+    if (opportunities.detected === 0) {
+      return {
+        overall: 0,
+        conversionRate: 0,
+        executionScore: 0,
+        profitEfficiency: 0
+      };
+    }
+    
+    // Conversion rate: executed / detected
+    const conversionRate = (opportunities.executed / opportunities.detected) * 100;
+    
+    // Success rate: successful / executed
+    const successRate = opportunities.executed > 0 ? 
+      (opportunities.successful / opportunities.executed) * 100 : 0;
+    
+    // Execution speed score (based on average execution time)
+    const avgExecutionTime = performance.executionLatency.length > 0 ?
+      performance.executionLatency.reduce((sum, exec) => sum + exec.value, 0) / performance.executionLatency.length : 0;
+    
+    const executionScore = Math.max(0, 100 - (avgExecutionTime / this.options.performanceTargets.executionTime) * 100);
+    
+    // Profit efficiency (profit per executed trade)
+    const profitEfficiency = opportunities.executed > 0 ? 
+      opportunities.totalProfit / opportunities.executed : 0;
+    
+    // Overall efficiency score
+    const overall = (conversionRate * 0.3 + successRate * 0.4 + executionScore * 0.3);
+    
+    return {
+      overall: Math.min(100, overall),
+      conversionRate,
+      executionScore,
+      profitEfficiency,
+      avgExecutionTime,
+      successRate
+    };
+  }
+  
+  /**
+   * Calculate RPC failover rate
+   */
+  calculateFailoverRate() {
+    const rpcMetrics = this.metrics.network.rpc;
+    
+    if (rpcMetrics.totalRequests === 0) {
+      return {
+        rate: 0,
+        total: 0,
+        failovers: 0,
+        reliability: 100
+      };
+    }
+    
+    const failoverRate = (rpcMetrics.failoverCount / rpcMetrics.totalRequests) * 100;
+    const reliability = ((rpcMetrics.successfulRequests) / rpcMetrics.totalRequests) * 100;
+    
+    return {
+      rate: failoverRate,
+      total: rpcMetrics.totalRequests,
+      failovers: rpcMetrics.failoverCount,
+      reliability,
+      successfulRequests: rpcMetrics.successfulRequests,
+      failedRequests: rpcMetrics.failedRequests
+    };
+  }
+  
+  /**
+   * Get current memory usage in MB
+   */
+  getCurrentMemoryUsage() {
+    const memoryUsage = process.memoryUsage();
+    return Math.round(memoryUsage.heapUsed / 1024 / 1024); // Convert to MB
+  }
+  
+  /**
+   * Check SLA compliance
+   */
+  checkSLACompliance() {
+    const targets = this.options.performanceTargets;
+    const metrics = this.metrics;
+    
+    const compliance = {
+      rpcLatency: {
+        target: targets.rpcLatency,
+        current: metrics.network.rpc.avgLatency,
+        compliant: metrics.network.rpc.avgLatency <= targets.rpcLatency,
+        compliance: Math.max(0, 100 - ((metrics.network.rpc.avgLatency / targets.rpcLatency) * 100))
+      },
+      executionTime: {
+        target: targets.executionTime,
+        current: this.getAverageExecutionTime(),
+        compliant: this.getAverageExecutionTime() <= targets.executionTime,
+        compliance: Math.max(0, 100 - ((this.getAverageExecutionTime() / targets.executionTime) * 100))
+      },
+      successRate: {
+        target: targets.successRate,
+        current: metrics.arbitrage.opportunities.successRate,
+        compliant: metrics.arbitrage.opportunities.successRate >= targets.successRate,
+        compliance: (metrics.arbitrage.opportunities.successRate / targets.successRate) * 100
+      },
+      memoryUsage: {
+        target: targets.memoryUsage,
+        current: this.getCurrentMemoryUsage(),
+        compliant: this.getCurrentMemoryUsage() <= targets.memoryUsage,
+        compliance: Math.max(0, 100 - ((this.getCurrentMemoryUsage() / targets.memoryUsage) * 100))
+      }
+    };
+    
+    // Calculate overall compliance
+    const overallCompliance = Object.values(compliance).reduce((sum, metric) => {
+      return sum + Math.min(100, metric.compliance);
+    }, 0) / Object.keys(compliance).length;
+    
+    return {
+      overall: overallCompliance,
+      details: compliance,
+      compliant: overallCompliance >= 90 // 90% compliance threshold
+    };
+  }
+  
+  /**
+   * Get average execution time
+   */
+  getAverageExecutionTime() {
+    const executions = this.metrics.arbitrage.performance.executionLatency;
+    if (executions.length === 0) return 0;
+    
+    return executions.reduce((sum, exec) => sum + exec.value, 0) / executions.length;
+  }
+  
+  /**
+   * Calculate performance grade
+   */
+  calculatePerformanceGrade(issues) {
+    const slaCompliance = this.checkSLACompliance();
+    const efficiency = this.calculateExecutionEfficiency();
+    const failoverRate = this.calculateFailoverRate();
+    
+    // Calculate weighted score
+    const score = (
+      slaCompliance.overall * 0.4 +
+      efficiency.overall * 0.3 +
+      failoverRate.reliability * 0.2 +
+      (100 - Math.min(100, issues.length * 10)) * 0.1 // Issue penalty
+    );
+    
+    // Convert to letter grade
+    if (score >= 90) return 'A';
+    if (score >= 80) return 'B';
+    if (score >= 70) return 'C';
+    if (score >= 60) return 'D';
+    return 'F';
+  }
+
+  /**
    * Shutdown performance analyzer
    */
   async shutdown() {
