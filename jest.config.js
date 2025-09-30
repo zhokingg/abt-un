@@ -1,17 +1,14 @@
 export default {
   testEnvironment: 'node',
-  extensionsToTreatAsEsm: ['.js'],
-  globals: {
-    'ts-jest': {
-      useESM: true
-    }
-  },
-  moduleNameMapping: {
+  moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1'
   },
-  transform: {},
+  transformIgnorePatterns: [
+    'node_modules/(?!((@flashbots|@uniswap)/.*|ethers)/)'
+  ],
   testMatch: [
-    '**/test/**/*.test.js'
+    '**/src/**/*.test.js',
+    '**/tests/**/*.test.js'
   ],
   collectCoverage: false,
   verbose: true
